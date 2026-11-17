@@ -152,7 +152,14 @@ export default function Home() {
     nav = useNavigation();
   useEffect(() => {
     if (__DEV__ && ["top", "bottom", "drawer"].includes(String(params.dev)))
-      update({ theme: 1, fontSize: 23 });
+      update({ theme: 2, fontSize: 23 });
+    if (__DEV__ && ["paper", "dark", "galaxy"].includes(String(params.dev)))
+      update({
+        theme: ({ paper: 2, dark: 3, galaxy: 4 } as Record<string, number>)[
+          String(params.dev)
+        ],
+        fontSize: 23,
+      });
   }, [params.dev, update]);
   useEffect(() => {
     if (__DEV__ && params.dev === "drawer") {

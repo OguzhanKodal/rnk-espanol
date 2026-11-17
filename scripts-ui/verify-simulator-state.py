@@ -11,11 +11,15 @@ for path in paths:
  marks={m['id']:m for m in data.get('marks',[])}
  if 'dev-highlight' not in marks: continue
  assert marks['dev-highlight']['bold'] is True
- assert marks['dev-highlight']['start']==0 and marks['dev-highlight']['end']==23
+ assert marks['dev-highlight']['start']==0
+ assert marks['dev-highlight']['text']=='Una palabra de esperanza:'
+ assert marks['dev-highlight']['end']==len(marks['dev-highlight']['text'])
  assert marks['dev-note']['note']
  assert marks['dev-bookmark']['blockId']==marks['dev-highlight']['blockId']
  assert data['progress']['ramadan-frugalidad-agradecimiento']['page']>=5
  assert 14<=data['settings']['fontSize']<=34
+ assert data['settings']['themeVersion']==2
+ assert 0<=data['settings']['theme']<=6
  print('PASS: bookmark, highlight style/offsets, note, per-book progress and settings survived app relaunch in SQLite.')
  break
 else: raise AssertionError('No persisted dev annotations found')

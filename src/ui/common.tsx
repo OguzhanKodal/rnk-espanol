@@ -49,7 +49,7 @@ export function Button({
     >
       <Label
         style={{
-          color: active ? "#fff" : p.text,
+          color: active ? p.accentText : p.text,
           fontSize: 14,
           fontWeight: "600",
         }}

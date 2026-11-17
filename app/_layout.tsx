@@ -62,7 +62,7 @@ function Navigation() {
                 marginBottom: 16,
               }}
             >
-              <Ionicons name="book-outline" size={28} color="#fff" />
+              <Ionicons name="book-outline" size={28} color={p.accentText} />
             </View>
             <Label style={{ fontSize: 26, fontWeight: "700" }}>
               {es.brand}

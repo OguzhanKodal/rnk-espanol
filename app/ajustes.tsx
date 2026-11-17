@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import { ThemePicker } from "../src/ui/theme-picker";
 import { ScrollView, View } from "react-native";
 import { usePalette, useStore } from "../src/ui/store";
-import { Segments } from "../src/ui/segments";
+
 import { Label, Button, styles } from "../src/ui/common";
 import { es } from "../src/i18n/es";
 export default function Settings() {
   const p = usePalette(),
     { settings, update } = useStore();
+  const [themes, setThemes] = useState(false);
   return (
     <ScrollView
       style={{ backgroundColor: p.bg }}
@@ -19,11 +21,11 @@ export default function Settings() {
         {es.reading}
       </Label>
       <Label style={{ marginBottom: 14 }}>{es.theme}</Label>
-      <Segments
-        values={es.themes}
-        selected={settings.theme}
-        onChange={(theme) => update({ theme })}
+      <Button
+        title={es.themes[settings.theme] + "  ›"}
+        onPress={() => setThemes(true)}
       />
+      <ThemePicker visible={themes} onClose={() => setThemes(false)} />
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Label style={{ marginBottom: 14 }}>{es.size}</Label>
       <View style={styles.row}>

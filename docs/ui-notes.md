@@ -33,11 +33,9 @@ node scripts-ui/capture-simulator.mjs
   glossary ranges are memoized, accent/case insensitive, longest phrase first,
   with word boundaries. Arabic spans remain together and use Amiri, red and RTL.
   Unresolved Arabic uses the contract's `[árabe]` marker.
-- Long press selects a word; tapping another word extends the selection in that
-  paragraph. The blue endpoints are visual guides. This is the explicitly allowed
-  tap-to-extend option, not native draggable selection handles. Whole-paragraph
-  selection, copy, system share, bookmarks, notes, six highlight colours, bold,
-  italic and deletion are implemented. Tools float below the reader header.
+- Long press selects a word. The active paragraph uses measured word pieces and
+  two draggable endpoints; tapping outside the selection dismisses it. See V3
+  below for the mechanics, regression coverage and limits.
 - Selections use UTF-16 character offsets over concatenated spans (matching JS
   string slicing), anchored by stable block IDs. Highlight colours include their
   own dark foreground so they stay readable in dark mode.
@@ -163,3 +161,65 @@ pinch steps. Images were opened for visual inspection; intermediate captures
 with a truncated prayer title and a transient JSX text warning were replaced.
 
 Final pinch capture: all five 23/29/18/32/23 px states keep the beginning of\nthe same s1-b2 paragraph at the top of the list viewport, including shrinking\nthe short fixture to 18 px. No source edits or hot reload occurred during this\nfinal sequence. All individual step PNGs were opened and inspected.\n
+
+## V3 · Reading themes, contents and selection (17 November 2026)
+
+- Seven reading palettes, in order: Claro suave, Claro, Papel antiguo (default),
+  Oscuro, Galaxia, Atardecer and Noche ámbar. Each supplies page, raised surface,
+  text, muted, borders, Arabic, glossary accent and contrasting accent foreground.
+  Existing screens consume the shared palette; shelf wood and cover artwork retain
+  their material colours. Versioned SQLite migration maps old 0/1/2 to 1/2/3 once.
+- Ajustes has a current-theme row. The reader's Aa display control opens the same
+  bottom sheet (long press still increments font size; full font controls remain in
+  Ajustes). Palette icon, round close, hint and seven theme-painted serif samples
+  follow reference 10. Selection applies immediately without closing the sheet.
+- Reader contents button opens an animated left panel at 87% width with a dimmed
+  dismissible backdrop. Sections own a hierarchy of heading levels 1–3; headings
+  and sections jump to stable block IDs. Separate chevrons expand/collapse without
+  jumping. All branches start expanded. Search folds accents and case, showing
+  matching ancestors/descendants regardless of collapsed state. The deepest entry
+  containing the current block is active. Bookmarks, notes and highlights filter
+  the existing store by book and jump to their blocks; empty tabs have Spanish copy.
+- Selection uses Expo Go-compatible React Native PanResponder with 44×44 pt handle
+  targets. Only the active paragraph switches from nested Text to wrapping measured
+  word Text pieces, retaining serif, bold/italic, Arabic, glossary and annotation
+  colours. onLayout provides word rectangles; a handle grant measures the paragraph
+  in window coordinates. Movement finds the nearest word (with stronger vertical
+  weighting for line choice), then updates the corresponding UTF-16 boundary.
+  Handles grow/shrink without crossing. The FlatList cannot scroll during dragging,
+  including responder cancellation. The toolbar sits above the footer so a selection
+  near the top remains visible. All existing actions retain the same offsets.
+- Text outside the selection, empty page space, headings and header taps dismiss
+  selection. The original tap is consumed for glossary purposes. Selected words
+  keep it. End offsets are exclusive, include the complete final word, and trim
+  trailing whitespace. Existing annotations that still exactly match their source
+  slice are repaired to full words on load and persisted; stale anchors stay intact.
+  The saved “Una palabra de esperanz” record now reads “Una palabra de esperanza:”.
+- Limits: dragging stays within one paragraph, with no auto-scroll or magnifier.
+  The active paragraph can reflow slightly because measured words use flex wrapping
+  rather than native justification. Arabic spans remain indivisible tokens for drag
+  hit-testing. Physical finger feel and Android were not exercised; simulator dev
+  movement exercises the same nearest-word hit test and endpoint callback, without
+  injecting touch events.
+
+Verification: TypeScript, Expo lint, reader regression checks and selection boundary
+checks pass. selection.test.mjs covers the clipped esperanza endpoint, word shrinking,
+UTF-16 surrogate pairs and empty text. The read-only SQLite check covers corrected
+exclusive offsets and persistence after relaunch. Existing Metro on 8081 was reused.
+All PNGs in docs/ekran/v3/ were opened for visual inspection. Replaced captures whose
+floating toolbar obscured selection and whose bookmark still showed the old truncation.
+Expo Go's blue floating gear is host UI, not part of the application.
+
+Development-only routes for reproducibility (`exp://127.0.0.1:8081/--/` prefix):
+
+- Home `?dev=paper`, `?dev=dark`, `?dev=galaxy`.
+- Reader `reader?book=muestra&block=s1-b2&dev=paper` (also dark/galaxy).
+- Theme sheet `reader?book=muestra&dev=themes`.
+- Expanded real contents `reader?book=ramadan-frugalidad-agradecimiento&dev=index`.
+- Fixture contents `reader?book=muestra&dev=index`; bookmarks `dev=index-marks`.
+- Moved selection `reader?book=muestra&block=s1-b2&dev=handles` selects the opening
+  passage then moves the end handle to measured token 8 through the drag hit-test.
+
+Screenshots: 01-themes.png; 02-home-paper.png; 03-reader-paper.png;
+04-home-dark.png; 05-reader-dark.png; 06-home-galaxy.png; 07-reader-galaxy.png;
+08-index-real.png; 09-index-bookmarks.png; 10-handles.png; 11-index-fixture.png.

@@ -1,3 +1,6 @@
+import { ThemePicker } from "../src/ui/theme-picker";
+import { ContentsPanel } from "../src/ui/contents-panel";
+import { WordSelection, wordBounds } from "../src/ui/word-selection";
 import React, {
   memo,
   useCallback,
@@ -53,6 +56,9 @@ const BlockView = memo(function BlockView({
   onWord,
   onSelect,
   onGlossary,
+  onMove,
+  onDrag,
+  testMove,
 }: {
   row: Row;
   fontSize: number;
@@ -64,7 +70,11 @@ const BlockView = memo(function BlockView({
   onWord: (id: string, start: number, end: number) => void;
   onSelect: (id: string, start: number, end: number) => void;
   onGlossary: (g: GlossaryEntry) => void;
+  onMove: (edge: "start" | "end", start: number, end: number) => void;
+  onDrag: (active: boolean) => void;
+  testMove?: boolean;
 }) {
+  const p = usePalette();
   const b = row.block,
     text = blockText(b),
     ranges = useMemo(() => glossaryRanges(text), [text]);
@@ -117,7 +127,7 @@ const BlockView = memo(function BlockView({
         style={{
           fontFamily: "Amiri_400Regular",
           fontSize: fontSize + 5,
-          color: "#BC4340",
+          color: p.arabic,
           writingDirection: "rtl",
           textAlign: "center",
           marginVertical: 20,
@@ -143,84 +153,101 @@ const BlockView = memo(function BlockView({
   }
   return (
     <View style={{ marginBottom: 22 }}>
-      <Text
-        style={{
-          fontSize,
-          fontFamily: font,
-          color,
-          lineHeight: fontSize * 1.85,
-          textAlign: b.type === "note" || fontSize > 28 ? "left" : "justify",
-          fontStyle: b.type === "note" ? "italic" : "normal",
-        }}
-      >
-        {tokens.map((t, i) => {
-          const g = ranges.find((r) => t.start >= r.start && t.start < r.end);
-          const mark = marks
-            .filter(
-              (m) =>
-                m.kind === "highlight" && m.start < t.end && m.end > t.start,
-            )
-            .at(-1);
-          const selected =
-            selection && selection.start < t.end && selection.end > t.start;
-          return (
-            <Text
-              key={i}
-              suppressHighlighting
-              onLongPress={() => onSelect(b.id, t.start, t.end)}
-              onPress={() =>
-                selection
-                  ? onWord(b.id, t.start, t.end)
-                  : g
-                    ? onGlossary(g.entry)
-                    : undefined
-              }
-              style={{
+      {selection ? (
+        <WordSelection
+          fontSize={fontSize}
+          start={selection.start}
+          end={selection.end}
+          onMove={onMove}
+          onDrag={onDrag}
+          onWord={(start, end) => onWord(b.id, start, end)}
+          testMove={testMove}
+          pieces={tokens.map((t) => {
+            const mark = marks
+              .filter(
+                (m) =>
+                  m.kind === "highlight" && m.start < t.end && m.end > t.start,
+              )
+              .at(-1);
+            return {
+              ...t,
+              style: {
+                fontSize,
+                color: mark
+                  ? "#302920"
+                  : t.span.t === "arabic"
+                    ? p.arabic
+                    : color,
+                backgroundColor: mark?.color,
                 fontFamily:
                   t.span.t === "arabic"
                     ? "Amiri_400Regular"
                     : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-                color:
-                  t.span.t === "arabic"
-                    ? "#BC4340"
-                    : mark || selected
-                      ? "#302920"
-                      : color,
-                writingDirection: t.span.t === "arabic" ? "rtl" : "auto",
-                backgroundColor: selected ? "#A9C8E9" : mark?.color,
-                fontWeight: t.span.t === "bold" || mark?.bold ? "700" : "400",
-                fontStyle:
-                  t.span.t === "italic" || mark?.italic ? "italic" : undefined,
-                textDecorationLine: g ? "underline" : "none",
-                textDecorationColor: "#B79F7A",
-              }}
-            >
-              {t.text || es.arabic}
-            </Text>
-          );
-        })}
-      </Text>
-      {selection && (
-        <View
+                textDecorationLine: ranges.some(
+                  (g) => t.start >= g.start && t.start < g.end,
+                )
+                  ? "underline"
+                  : "none",
+                textDecorationColor: p.accent,
+              },
+            };
+          })}
+        />
+      ) : (
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 4,
+            fontSize,
+            fontFamily: font,
+            color,
+            lineHeight: fontSize * 1.85,
+            textAlign: b.type === "note" || fontSize > 28 ? "left" : "justify",
+            fontStyle: b.type === "note" ? "italic" : "normal",
           }}
         >
-          <Label style={{ color: "#4F7CAD", fontSize: 16 }}>●</Label>
-          <Label
-            style={{
-              color: "#4F7CAD",
-              fontSize: 10,
-              flex: 1,
-              textAlign: "center",
-            }}
-          >
-            {es.extend}
-          </Label>
-          <Label style={{ color: "#4F7CAD", fontSize: 16 }}>●</Label>
-        </View>
+          {tokens.map((t, i) => {
+            const g = ranges.find((r) => t.start >= r.start && t.start < r.end);
+            const mark = marks
+              .filter(
+                (m) =>
+                  m.kind === "highlight" && m.start < t.end && m.end > t.start,
+              )
+              .at(-1);
+            const selected = false;
+            return (
+              <Text
+                key={i}
+                suppressHighlighting
+                onLongPress={() => onSelect(b.id, t.start, t.end)}
+                onPress={() =>
+                  g ? onGlossary(g.entry) : onWord(b.id, t.start, t.end)
+                }
+                style={{
+                  fontFamily:
+                    t.span.t === "arabic"
+                      ? "Amiri_400Regular"
+                      : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
+                  color:
+                    t.span.t === "arabic"
+                      ? p.arabic
+                      : mark || selected
+                        ? "#302920"
+                        : color,
+                  writingDirection: t.span.t === "arabic" ? "rtl" : "auto",
+                  backgroundColor: selected ? "#A9C8E9" : mark?.color,
+                  fontWeight: t.span.t === "bold" || mark?.bold ? "700" : "400",
+                  fontStyle:
+                    t.span.t === "italic" || mark?.italic
+                      ? "italic"
+                      : undefined,
+                  textDecorationLine: g ? "underline" : "none",
+                  textDecorationColor: p.accent,
+                }}
+              >
+                {t.text || es.arabic}
+              </Text>
+            );
+          })}
+        </Text>
       )}
       {marks.some((m) => m.kind === "note") && (
         <Pressable
@@ -256,7 +283,9 @@ export default function Reader() {
         ),
       [book],
     );
-  const [pinching, setPinching] = useState(false),
+  const [dragging, setDragging] = useState(false),
+    [themes, setThemes] = useState(false),
+    [pinching, setPinching] = useState(false),
     [previewScale, setPreviewScale] = useState(1),
     [chrome, setChrome] = useState(true),
     [pinchReport, setPinchReport] = useState(""),
@@ -268,6 +297,7 @@ export default function Reader() {
     [noteOpen, setNoteOpen] = useState(false),
     [note, setNote] = useState(""),
     [notice, setNotice] = useState("");
+  const touchKept = useRef(false);
   const list = useRef<FlatList<Row>>(null),
     anchor = useRef(0),
     size = useRef(settings.fontSize),
@@ -317,6 +347,7 @@ export default function Reader() {
         animated: false,
         viewPosition: 0,
       });
+      setTimeout(() => setChrome(true), 600);
     },
     [rows.length],
   );
@@ -339,13 +370,22 @@ export default function Reader() {
     const timer = setTimeout(() => {
       if (!__DEV__ || !params.dev) return;
       const row = rows.find((r) => r.block.type === "paragraph");
-      if (params.dev === "dark") update({ theme: 2 });
+      if (params.dev === "dark") update({ theme: 3 });
+      if (params.dev === "paper") update({ theme: 2, fontSize: 23 });
+      if (params.dev === "galaxy") update({ theme: 4, fontSize: 23 });
+      if (params.dev === "themes") {
+        update({ theme: 2 });
+        setThemes(true);
+      }
       if (params.dev === "light") update({ theme: 0, fontSize: 23 });
       if (params.dev === "arabic") update({ fontSize: 23 });
       if (params.dev === "large") update({ fontSize: 34 });
-      if (params.dev === "toc") setToc(true);
+      if (["toc", "index", "index-marks"].includes(params.dev)) setToc(true);
       if (params.dev === "note" && row) {
-        setSelection({ blockId: row.block.id, start: 0, end: 30 });
+        setSelection({
+          blockId: row.block.id,
+          ...wordBounds(blockText(row.block), 0, 30),
+        });
         setNoteOpen(true);
       }
       if (params.dev === "persist" && row) {
@@ -355,18 +395,20 @@ export default function Reader() {
             kind,
             bookId: book.id,
             blockId: row.block.id,
-            start: 0,
-            end: 23,
+            ...wordBounds(blockText(row.block), 0, 23),
             color: colors[0],
             bold: true,
             italic: false,
-            text: blockText(row.block).slice(0, 23),
+            text: blockText(row.block).slice(
+              0,
+              wordBounds(blockText(row.block), 0, 23).end,
+            ),
             note: kind === "note" ? es.notePlaceholder : undefined,
             page: row.block.page,
           });
       }
       if (["arabic", "selection", "colors", "glossary"].includes(params.dev))
-        update({ theme: 1 });
+        update({ theme: 2 });
       if (params.dev === "glossary")
         setGloss(
           glossaryRanges(row ? blockText(row.block) : "gratitud")[0]?.entry ?? {
@@ -376,11 +418,10 @@ export default function Reader() {
             verified: false,
           },
         );
-      if (row && ["selection", "colors"].includes(params.dev)) {
+      if (row && ["selection", "colors", "handles"].includes(params.dev)) {
         setSelection({
           blockId: row.block.id,
-          start: 0,
-          end: Math.min(40, blockText(row.block).length),
+          ...wordBounds(blockText(row.block), 0, 25),
         });
         setColorMode(params.dev === "colors");
       }
@@ -486,24 +527,54 @@ export default function Reader() {
   /* eslint-enable react-hooks/refs */
   const onSelect = useCallback(
     (blockId: string, start: number, end: number) => {
-      setSelection({ blockId, start, end });
+      touchKept.current = true;
+      const text = blockText(rows.find((r) => r.block.id === blockId)!.block);
+      setSelection({ blockId, ...wordBounds(text, start, end) });
       setColorMode(false);
     },
-    [],
+    [rows],
   );
-  const onWord = useCallback(
-    (blockId: string, start: number, end: number) =>
-      setSelection((s) =>
-        s?.blockId === blockId
-          ? {
-              blockId,
-              start: Math.min(s.start, start),
-              end: Math.max(s.end, end),
-            }
-          : { blockId, start, end },
-      ),
-    [],
+  const onWord = useCallback((blockId: string, start: number, end: number) => {
+    setSelection((s) => {
+      if (s?.blockId === blockId && start < s.end && end > s.start) {
+        touchKept.current = true;
+        return s;
+      }
+      return undefined;
+    });
+  }, []);
+  const onMove = useCallback(
+    (edge: "start" | "end", start: number, end: number) => {
+      touchKept.current = true;
+      setSelection((s) => {
+        if (!s) return s;
+        const text = blockText(
+          rows.find((r) => r.block.id === s.blockId)!.block,
+        );
+        const bounds = wordBounds(text, start, end);
+        return {
+          ...s,
+          start:
+            edge === "start"
+              ? bounds.start < s.end
+                ? bounds.start
+                : s.start
+              : s.start,
+          end:
+            edge === "end"
+              ? bounds.end > s.start
+                ? bounds.end
+                : s.end
+              : s.end,
+        };
+      });
+    },
+    [rows],
   );
+  const onDrag = useCallback((active: boolean) => {
+    touchKept.current = true;
+    setDragging(active);
+  }, []);
   const selectedBlock = rows.find(
     (r) => r.block.id === selection?.blockId,
   )?.block;
@@ -565,6 +636,7 @@ export default function Reader() {
   return (
     <View style={{ flex: 1, backgroundColor: p.bg, paddingTop: insets.top }}>
       <View
+        onTouchStart={() => setSelection(undefined)}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -601,18 +673,28 @@ export default function Reader() {
       <GestureDetector gesture={pinch}>
         <FlatList
           ref={list}
-          scrollEnabled={!pinching}
+          scrollEnabled={!pinching && !dragging}
           onContentSizeChange={() => {
             requestAnimationFrame(restoreResize);
           }}
           onTouchStart={(e) => {
+            touchKept.current = false;
             touchStart.current = {
               y: e.nativeEvent.pageY,
               offset: lastScroll.current,
             };
           }}
           onTouchEnd={(e) => {
+            if (selection)
+              requestAnimationFrame(() => {
+                if (!touchKept.current) {
+                  setSelection(undefined);
+                  setColorMode(false);
+                }
+              });
             if (
+              !selection &&
+              !dragging &&
               !activePinch.current &&
               Math.abs(e.nativeEvent.pageY - touchStart.current.y) < 8 &&
               Math.abs(lastScroll.current - touchStart.current.offset) < 8
@@ -673,7 +755,16 @@ export default function Reader() {
               marks={marksByBlock[item.block.id] ?? emptyMarks}
               onWord={onWord}
               onSelect={onSelect}
-              onGlossary={setGloss}
+              onGlossary={(g) => {
+                if (selection) {
+                  setSelection(undefined);
+                  return;
+                }
+                setGloss(g);
+              }}
+              onMove={onMove}
+              onDrag={onDrag}
+              testMove={__DEV__ && params.dev === "handles"}
             />
           )}
         />
@@ -701,17 +792,21 @@ export default function Reader() {
           {es.page} {current?.block.page}
         </Label>
         <Pressable
-          onPress={() => changeSize(settings.fontSize + 1)}
-          accessibilityLabel={es.size}
+          onPress={() => {
+            setSelection(undefined);
+            setThemes(true);
+          }}
+          accessibilityLabel={es.theme}
+          onLongPress={() => changeSize(settings.fontSize + 1)}
         >
-          <Label style={{ fontSize: 13, color: p.muted }}>A+</Label>
+          <Label style={{ fontSize: 13, color: p.muted }}>Aa</Label>
         </Pressable>
       </View>
       {selection && !noteOpen && (
         <View
           style={{
             position: "absolute",
-            top: insets.top + 65,
+            bottom: insets.bottom + 65,
             left: 12,
             right: 12,
             backgroundColor: "#303442",
@@ -903,7 +998,7 @@ export default function Reader() {
             borderRadius: 14,
           }}
         >
-          <Label style={{ color: "#fff", fontSize: 13 }}>{notice}</Label>
+          <Label style={{ color: p.accentText, fontSize: 13 }}>{notice}</Label>
         </View>
       )}
       <Sheet
@@ -918,27 +1013,19 @@ export default function Reader() {
           </Label>
         )}
       </Sheet>
-      <Sheet title={es.toc} visible={toc} onClose={() => setToc(false)}>
-        {book.sections.map((s) => (
-          <Pressable
-            key={s.id}
-            onPress={() => {
-              setToc(false);
-              scrollTo(rows.findIndex((r) => r.block.id === s.blocks[0]?.id));
-            }}
-            style={{
-              paddingVertical: 17,
-              borderBottomWidth: 1,
-              borderColor: p.line,
-            }}
-          >
-            <Label>{s.title}</Label>
-            <Label style={{ fontSize: 12, color: p.muted, marginTop: 5 }}>
-              {es.page} {s.blocks[0]?.page}
-            </Label>
-          </Pressable>
-        ))}
-      </Sheet>
+      <ThemePicker visible={themes} onClose={() => setThemes(false)} />
+      <ContentsPanel
+        visible={toc}
+        onClose={() => setToc(false)}
+        book={book}
+        currentIndex={visible}
+        page={current?.block.page ?? 1}
+        devTab={params.dev === "index-marks" ? 1 : 0}
+        onJump={(id) => {
+          setSelection(undefined);
+          scrollTo(rows.findIndex((r) => r.block.id === id));
+        }}
+      />
       <Sheet
         title={es.note}
         visible={noteOpen}
