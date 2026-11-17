@@ -1,112 +1,145 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, View, Pressable } from "react-native";
+import { ScrollView, View, Pressable, Image } from "react-native";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Rect, Path } from "react-native-svg";
 import { catalog, hasBook } from "../src/content/load";
 import { CatalogBook } from "../src/content/types";
 import { Label } from "../src/ui/common";
 import { usePalette, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
 import { es } from "../src/i18n/es";
-function Cover({ book, index }: { book: CatalogBook; index: number }) {
+const coverArt = {
+  coran: require("../assets/covers/coran.jpg"),
+  coleccion: require("../assets/covers/coleccion.jpg"),
+  breves: require("../assets/covers/breves.jpg"),
+};
+const gold = "#EBCB86";
+const engraved = {
+  textShadowColor: "#2a0608",
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 1.5,
+};
+function Cover({ book }: { book: CatalogBook; index: number }) {
+  const small = book.shelf === "breves";
+  const w = small ? 116 : 132,
+    h = small ? 174 : 198;
+  const long = book.title.length;
   return (
     <View
       style={{
-        width: 132,
-        height: 185,
-        backgroundColor:
-          book.shelf === "coran"
-            ? ["#164C38", "#20563E"][index % 2]
-            : ["#791F32", "#8B293C", "#692032", "#84283A"][index % 4],
-        borderRadius: 3,
+        width: w,
+        height: h,
+        borderRadius: small ? 2 : 4,
+        backgroundColor: book.shelf === "coran" ? "#0D3B29" : "#6E1220",
         shadowColor: "#160d06",
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
+        shadowOffset: { width: 4, height: 6 },
+        shadowOpacity: 0.28,
+        shadowRadius: 6,
+        elevation: 6,
       }}
     >
+      <Image
+        source={coverArt[book.shelf]}
+        resizeMode="stretch"
+        style={{ position: "absolute", width: w, height: h, borderRadius: small ? 2 : 4 }}
+      />
       <LinearGradient
-        colors={["#0006", "#FFFFFF12", "#0000"]}
+        colors={["#0007", "#FFFFFF14", "#0000"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 20,
-          borderRadius: 3,
-        }}
+        style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: small ? 10 : 16 }}
       />
-      <Svg width="132" height="185" style={{ position: "absolute" }}>
-        <Rect
-          x="6"
-          y="5"
-          width="120"
-          height="175"
-          rx="2"
-          stroke="#C7A56A"
-          strokeWidth="1.4"
-          fill="none"
-        />
-        <Rect
-          x="10"
-          y="9"
-          width="112"
-          height="167"
-          stroke="#C7A56A"
-          strokeWidth=".5"
-          fill="none"
-        />
-        <Path
-          d="M46 32 L66 21 L86 32 M46 151 L66 162 L86 151"
-          fill="none"
-          stroke="#C7A56A"
-        />
-        <Path d="M3 0 V185 M15 0 V185" stroke="#fff" opacity=".06" />
-      </Svg>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          padding: 17,
-          alignItems: "center",
-        }}
-      >
-        <Label
+      {small ? (
+        <View style={{ flex: 1, paddingHorizontal: 10, paddingTop: 12, paddingBottom: 12 }}>
+          <Label
+            style={{
+              fontFamily: "EBGaramond_400Regular",
+              fontSize: 6.5,
+              color: "#FBE9D8",
+              textAlign: "right",
+            }}
+          >
+            {es.fromCollection}
+          </Label>
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Label
+              style={{
+                fontFamily: "UnifrakturMaguntia_400Regular",
+                fontSize: long > 30 ? 15 : long > 18 ? 19 : 24,
+                lineHeight: long > 30 ? 18 : long > 18 ? 23 : 28,
+                color: "#FFFFFF",
+                textShadowColor: "#3a0d08",
+                textShadowOffset: { width: 1, height: 1.5 },
+                textShadowRadius: 1,
+              }}
+            >
+              {book.title}
+            </Label>
+            <Label
+              style={{
+                marginTop: 8,
+                fontFamily: "EBGaramond_600SemiBold",
+                fontSize: 7,
+                letterSpacing: 0.8,
+                color: "#FBE3CF",
+              }}
+            >
+              {es.author.toUpperCase()}
+            </Label>
+            <View style={{ height: 26 }} />
+          </View>
+        </View>
+      ) : (
+        <View
           style={{
-            fontSize: 8,
-            color: "#E2C991",
-            fontFamily: "EBGaramond_400Regular",
-            textAlign: "center",
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 24,
           }}
         >
-          {book.shelf !== "coran" ? es.brand : "◇"}
-        </Label>
-        <Label
-          style={{
-            fontFamily: "EBGaramond_600SemiBold",
-            fontSize:
-              book.title.length > 30 ? 13 : book.title.length > 25 ? 18 : 22,
-            color: "#F4DDA8",
-            textAlign: "center",
-            marginVertical: 12,
-          }}
-        >
-          {book.title}
-        </Label>
-        <Label
-          style={{
-            fontFamily: "EBGaramond_400Regular",
-            fontSize: 9,
-            color: "#E2C991",
-            textAlign: "center",
-          }}
-        >
-          {book.shelf === "coran" ? "" : es.author}
-        </Label>
-      </View>
+          {book.shelf === "coleccion" && (
+            <Label
+              style={{
+                fontFamily: "EBGaramond_600SemiBold",
+                fontSize: 6.5,
+                color: gold,
+                textAlign: "center",
+                ...engraved,
+              }}
+            >
+              {es.fromCollection}
+            </Label>
+          )}
+          <Label
+            style={{
+              fontFamily: "PlayfairDisplay_700Bold",
+              fontSize: long > 25 ? 13 : long > 14 ? 16 : 19,
+              lineHeight: long > 25 ? 16 : long > 14 ? 19 : 23,
+              color: gold,
+              textAlign: "center",
+              marginVertical: 9,
+              ...engraved,
+            }}
+          >
+            {book.title}
+          </Label>
+          {book.shelf === "coleccion" && (
+            <Label
+              style={{
+                fontFamily: "EBGaramond_700Bold",
+                fontSize: 7.5,
+                lineHeight: 9,
+                color: gold,
+                textAlign: "center",
+                ...engraved,
+              }}
+            >
+              {"Bediüzzaman\nSaid Nursî"}
+            </Label>
+          )}
+        </View>
+      )}
     </View>
   );
 }

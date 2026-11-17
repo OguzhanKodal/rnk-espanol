@@ -13,6 +13,7 @@ export const es = {
   ],
   fonts: ["EB Garamond", "Libre Baskerville"],
   brand: "Risale-i Nur",
+  fromCollection: "Colección Risale-i Nur",
   language: "ESPAÑOL",
   app: "Risale-i Nur Español",
   library: "Biblioteca",
