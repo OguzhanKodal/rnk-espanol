@@ -1,0 +1,49 @@
+# Book content schema (contract between converter and app)
+
+Each book is one JSON file: `assets/books/<bookId>.json`. Catalog: `assets/books/catalog.json`.
+
+```ts
+// src/content/types.ts mirrors this exactly
+type Catalog = {
+  books: CatalogBook[];
+};
+type CatalogBook = {
+  id: string;                 // "ramadan-frugalidad-agradecimiento"
+  title: string;              // "Ramadán, Frugalidad y Agradecimiento"
+  shelf: "coran" | "coleccion" | "breves";
+  available: boolean;         // false → "Próximamente"
+  coverColor?: string;        // hex, optional
+};
+
+type Book = {
+  id: string;
+  title: string;
+  author: string;             // "Bediüzzaman Said Nursî"
+  credits: string[];          // translator / publisher lines from the copyright page, verbatim
+  sections: Section[];
+};
+
+type Section = {
+  id: string;                 // "s1", "s2", ...
+  title: string;              // real heading text, e.g. "Sobre el Mes de Ramadán"
+  blocks: Block[];
+};
+
+type Block =
+  | { id: string; type: "heading"; level: 1 | 2 | 3; text: string; page: number }
+  | { id: string; type: "paragraph"; spans: Span[]; page: number }
+  | { id: string; type: "arabic"; text: string; page: number; unresolved?: true }   // standalone, centered, red, RTL
+  | { id: string; type: "note"; spans: Span[]; page: number }                      // bracketed intro notes, italic
+  | { id: string; type: "pageBreak"; page: number };                                // emitted where a printed page starts
+
+type Span =
+  | { t: "text"; text: string }
+  | { t: "arabic"; text: string; unresolved?: true }   // inline Arabic inside a sentence, red
+  | { t: "bold"; text: string }
+  | { t: "italic"; text: string };
+```
+
+Rules
+- Block ids are stable across reruns of the converter (`<sectionId>-b<index>`), because highlights/notes are anchored to `blockId + start/end character offset` over the concatenated span text of that block.
+- `page` = the printed page number of the source PDF where the block starts.
+- `unresolved: true` arabic has `text: ""` and the app shows a small grey "[árabe]" marker.
