@@ -1,5 +1,4 @@
-import { bookData, catalogData, glossaryData, frasesData } from "./registry";
-import sample from "./fixtures/sample-book.json";
+import { bookLoaders, catalogData, glossaryData, frasesData } from "./registry";
 import { Book, Catalog } from "./types";
 export type GlossaryEntry = {
   term: string;
@@ -20,8 +19,11 @@ export const glossary = (
 export const frases = (
   Array.isArray(frasesData) ? frasesData : (frasesData.frases ?? [])
 ) as Quote[];
-export const getBook = (id: string): Book => (bookData[id] ?? sample) as Book;
-export const hasBook = (id: string) => !!bookData[id];
+export const getBook = (id: string): Book =>
+  (Object.hasOwn(bookLoaders, id)
+    ? bookLoaders[id]()
+    : bookLoaders.muestra()) as Book;
+export const hasBook = (id: string) => Object.hasOwn(bookLoaders, id);
 export const normalize = (s: string) =>
   s
     .normalize("NFD")
