@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Rect, Path } from "react-native-svg";
 import { catalog, hasBook } from "../src/content/load";
 import { CatalogBook } from "../src/content/types";
-import { Label, styles } from "../src/ui/common";
+import { Label } from "../src/ui/common";
 import { usePalette, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
 import { es } from "../src/i18n/es";
@@ -16,14 +16,29 @@ function Cover({ book, index }: { book: CatalogBook; index: number }) {
         width: 132,
         height: 185,
         backgroundColor:
-          book.coverColor ?? ["#70363B", "#304B50", "#554334"][index % 3],
+          book.shelf === "coran"
+            ? ["#164C38", "#20563E"][index % 2]
+            : ["#791F32", "#8B293C", "#692032", "#84283A"][index % 4],
         borderRadius: 3,
         shadowColor: "#160d06",
         shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.2,
         shadowRadius: 5,
       }}
     >
+      <LinearGradient
+        colors={["#0006", "#FFFFFF12", "#0000"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 20,
+          borderRadius: 3,
+        }}
+      />
       <Svg width="132" height="185" style={{ position: "absolute" }}>
         <Rect
           x="6"
@@ -63,11 +78,11 @@ function Cover({ book, index }: { book: CatalogBook; index: number }) {
           style={{
             fontSize: 8,
             color: "#E2C991",
-            letterSpacing: 1,
+            fontFamily: "EBGaramond_400Regular",
             textAlign: "center",
           }}
         >
-          {es.brand.toUpperCase()}
+          {book.shelf !== "coran" ? es.brand : "◇"}
         </Label>
         <Label
           style={{
@@ -81,8 +96,15 @@ function Cover({ book, index }: { book: CatalogBook; index: number }) {
         >
           {book.title}
         </Label>
-        <Label style={{ fontSize: 8, color: "#E2C991", textAlign: "center" }}>
-          {book.shelf === "coran" ? es.shelves[0] : es.author}
+        <Label
+          style={{
+            fontFamily: "EBGaramond_400Regular",
+            fontSize: 9,
+            color: "#E2C991",
+            textAlign: "center",
+          }}
+        >
+          {book.shelf === "coran" ? "" : es.author}
         </Label>
       </View>
     </View>
@@ -130,40 +152,21 @@ export default function Home() {
         }}
         contentContainerStyle={{ paddingBottom: 35 }}
       >
-        <View
-          style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 }}
-        >
-          <Label style={[styles.eyebrow, { color: p.accent }]}>
-            {es.app.toUpperCase()}
-          </Label>
-          <Label
-            style={{
-              fontSize: 33,
-              fontFamily: "EBGaramond_400Regular",
-              marginTop: 8,
-            }}
-          >
-            {es.free}
-          </Label>
-          <Label style={{ fontSize: 13, color: p.muted, marginTop: 5 }}>
-            {es.resume}
-          </Label>
-        </View>
         {(["coran", "coleccion", "breves"] as const).map((shelf, si) => (
           <View key={shelf}>
             <LinearGradient
-              colors={["#D6AC7D", "#BC8756", "#D4A877"]}
+              colors={["#F1E4D2", "#E5D0B3", "#EFDFC7"]}
               style={{ paddingTop: 14 }}
             >
               <View
                 style={{
                   alignSelf: "center",
-                  borderRadius: 5,
-                  paddingHorizontal: 24,
+                  borderRadius: 20,
+                  paddingHorizontal: 20,
                   paddingVertical: 6,
-                  backgroundColor: "#F7E5C2",
+                  backgroundColor: "#FFF8ED",
                   borderWidth: 1,
-                  borderColor: "#A57440",
+                  borderColor: "#DBC7A9",
                 }}
               >
                 <Label
@@ -193,7 +196,7 @@ export default function Home() {
                       bottom: 0,
                       width: i % 3 === 0 ? 2 : 1,
                       backgroundColor: i % 2 ? "#5e3714" : "#fff",
-                      opacity: 0.06,
+                      opacity: 0.025,
                     }}
                   />
                 ))}
@@ -246,12 +249,12 @@ export default function Home() {
               </ScrollView>
             </LinearGradient>
             <LinearGradient
-              colors={["#EACB98", "#C1905D", "#8B5E36"]}
+              colors={["#EAD7BA", "#D7BC94", "#BE9C74"]}
               style={{
                 height: 19,
                 borderTopWidth: 1,
                 borderTopColor: "#F5DDB4",
-                shadowOpacity: 0.25,
+                shadowOpacity: 0.1,
                 shadowRadius: 4,
                 shadowOffset: { width: 0, height: 5 },
               }}

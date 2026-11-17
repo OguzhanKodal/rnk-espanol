@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { View, FlatList, Pressable, Alert } from "react-native";
 import { router } from "expo-router";
 import { usePalette, useStore, Mark } from "../src/ui/store";
-import { Label, Button, styles } from "../src/ui/common";
+import { Segments } from "../src/ui/segments";
+import { Label, styles } from "../src/ui/common";
 import { getBook } from "../src/content/load";
 import { es } from "../src/i18n/es";
 export default function Marks() {
@@ -12,20 +13,12 @@ export default function Marks() {
   const kinds: Mark["kind"][] = ["bookmark", "highlight", "note"];
   return (
     <View style={{ flex: 1, backgroundColor: p.bg, padding: 18 }}>
-      <View
-        style={[
-          styles.row,
-          { marginBottom: 24, justifyContent: "space-between" },
-        ]}
-      >
-        {[es.marks, es.highlights, es.notes].map((t, i) => (
-          <Button
-            key={t}
-            title={t}
-            active={tab === i}
-            onPress={() => setTab(i)}
-          />
-        ))}
+      <View style={{ marginBottom: 20 }}>
+        <Segments
+          values={[es.marks, es.highlights, es.notes]}
+          selected={tab}
+          onChange={setTab}
+        />
       </View>
       <FlatList
         data={marks.filter((m) => m.kind === kinds[tab]).reverse()}
@@ -36,7 +29,7 @@ export default function Marks() {
             <Label
               style={{
                 fontSize: 22,
-                fontFamily: "EBGaramond_400Regular",
+                fontWeight: "400",
                 marginTop: 20,
               }}
             >
@@ -81,9 +74,7 @@ export default function Marks() {
               },
             ]}
           >
-            <Label
-              style={{ fontSize: 20, fontFamily: "EBGaramond_400Regular" }}
-            >
+            <Label style={{ fontSize: 17, fontWeight: "400" }}>
               {item.note ?? item.text}
             </Label>
             <Label style={{ color: p.muted, fontSize: 12, marginTop: 12 }}>

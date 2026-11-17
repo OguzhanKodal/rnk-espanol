@@ -137,10 +137,10 @@ export const styles = StyleSheet.create({
   pad: { padding: 22, paddingBottom: 60 },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   card: { padding: 20, borderRadius: 18, marginBottom: 12 },
-  eyebrow: { fontSize: 11, letterSpacing: 2, fontWeight: "700" },
+  eyebrow: { fontSize: 15, fontWeight: "500" },
   title: {
     fontSize: 30,
-    fontFamily: "EBGaramond_600SemiBold",
+    fontWeight: "700",
     marginBottom: 8,
   },
   muted: { fontSize: 14 },

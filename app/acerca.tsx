@@ -14,16 +14,14 @@ export default function About() {
       <Label
         style={{
           fontSize: 43,
-          fontFamily: "EBGaramond_600SemiBold",
+          fontWeight: "600",
           color: p.accent,
           marginTop: 20,
         }}
       >
         {es.brand}
       </Label>
-      <Label style={{ letterSpacing: 4, fontSize: 12, marginTop: 8 }}>
-        {es.language}
-      </Label>
+      <Label style={{ fontSize: 12, marginTop: 8 }}>{es.language}</Label>
       <Label style={{ fontSize: 17, marginTop: 30 }}>{es.aboutText}</Label>
       <Label style={{ color: p.muted, marginTop: 20, fontSize: 13 }}>
         {es.version}
@@ -34,11 +32,7 @@ export default function About() {
         .filter((b) => hasBook(b.id))
         .map((b) => (
           <View key={b.id} style={{ marginVertical: 15 }}>
-            <Label
-              style={{ fontSize: 22, fontFamily: "EBGaramond_600SemiBold" }}
-            >
-              {b.title}
-            </Label>
+            <Label style={{ fontSize: 22, fontWeight: "600" }}>{b.title}</Label>
             <Label style={{ color: p.muted, marginTop: 8 }}>
               {getBook(b.id).author}
             </Label>

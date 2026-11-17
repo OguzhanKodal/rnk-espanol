@@ -43,15 +43,15 @@ export default function Quotes() {
               style={{
                 fontSize: 48,
                 color: p.accent,
-                fontFamily: "EBGaramond_400Regular",
+                fontWeight: "400",
               }}
             >
               “
             </Label>
             <Label
               style={{
-                fontSize: 26,
-                fontFamily: "EBGaramond_400Regular",
+                fontSize: 19,
+                fontWeight: "400",
                 marginTop: -15,
               }}
             >

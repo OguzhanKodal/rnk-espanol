@@ -42,14 +42,15 @@ export default function Glossary() {
           <Pressable
             onPress={() => setEntry(item)}
             style={{
-              paddingVertical: 20,
+              padding: 18,
+              backgroundColor: p.paper,
+              borderRadius: 16,
+              marginBottom: 8,
               borderBottomWidth: 1,
               borderColor: p.line,
             }}
           >
-            <Label
-              style={{ fontFamily: "EBGaramond_600SemiBold", fontSize: 24 }}
-            >
+            <Label style={{ fontWeight: "600", fontSize: 18 }}>
               {item.term}
             </Label>
             <Label

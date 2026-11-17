@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import {
   View,
+  useWindowDimensions,
   Text,
   FlatList,
   Pressable,
@@ -246,6 +247,7 @@ export default function Reader() {
       useStore(),
     p = usePalette(),
     insets = useSafeAreaInsets();
+  const { height: viewportHeight } = useWindowDimensions();
   const book = getBook(params.book ?? "muestra"),
     rows = useMemo<Row[]>(
       () =>
@@ -254,7 +256,11 @@ export default function Reader() {
         ),
       [book],
     );
-  const [visible, setVisible] = useState(0),
+  const [pinching, setPinching] = useState(false),
+    [previewScale, setPreviewScale] = useState(1),
+    [chrome, setChrome] = useState(true),
+    [pinchReport, setPinchReport] = useState(""),
+    [visible, setVisible] = useState(0),
     [selection, setSelection] = useState<Selection>(),
     [gloss, setGloss] = useState<GlossaryEntry>(),
     [toc, setToc] = useState(false),
@@ -266,14 +272,44 @@ export default function Reader() {
     anchor = useRef(0),
     size = useRef(settings.fontSize),
     currentSize = useRef(settings.fontSize),
-    pinchAnchor = useRef(0);
+    pinchAnchor = useRef(0),
+    activePinch = useRef(false),
+    pendingAnchor = useRef<number | null>(null),
+    layouts = useRef(new Map<number, number>()),
+    lastScroll = useRef(0),
+    touchStart = useRef({ y: 0, offset: 0 }),
+    finalSize = useRef(settings.fontSize);
   useEffect(() => {
     currentSize.current = settings.fontSize;
   }, [settings.fontSize]);
+  const Cell = useCallback(
+    ({
+      index,
+      onLayout,
+      children,
+      ...cellProps
+    }: React.ComponentProps<
+      NonNullable<
+        React.ComponentProps<typeof FlatList<Row>>["CellRendererComponent"]
+      >
+    >) => (
+      <View
+        {...cellProps}
+        onLayout={(e) => {
+          layouts.current.set(index, e.nativeEvent.layout.y);
+          onLayout?.(e);
+        }}
+      >
+        {children}
+      </View>
+    ),
+    [],
+  );
   const restored = useRef("");
   const initialProgress = useRef(progress);
   const scrollTo = useCallback(
     (index: number) => {
+      if (activePinch.current) return;
       const i = Math.max(0, Math.min(rows.length - 1, index));
       anchor.current = i;
       list.current?.scrollToIndex({
@@ -304,6 +340,7 @@ export default function Reader() {
       if (!__DEV__ || !params.dev) return;
       const row = rows.find((r) => r.block.type === "paragraph");
       if (params.dev === "dark") update({ theme: 2 });
+      if (params.dev === "light") update({ theme: 0, fontSize: 23 });
       if (params.dev === "arabic") update({ fontSize: 23 });
       if (params.dev === "large") update({ fontSize: 34 });
       if (params.dev === "toc") setToc(true);
@@ -363,7 +400,11 @@ export default function Reader() {
       viewableItems: { isViewable: boolean; index?: number; item: Row }[];
     }) => {
       const item = viewableItems.find((v) => v.isViewable);
-      if (item?.index != null) {
+      if (
+        item?.index != null &&
+        !activePinch.current &&
+        pendingAnchor.current === null
+      ) {
         anchor.current = item.index;
         setVisible(item.index);
         saveProgress(book.id, {
@@ -374,31 +415,63 @@ export default function Reader() {
     },
     [book.id, saveProgress],
   );
+  const restoreResize = useCallback(() => {
+    const index = pendingAnchor.current;
+    if (index === null) return;
+    const y = layouts.current.get(index);
+    if (y === undefined) return;
+    pendingAnchor.current = null;
+    anchor.current = index;
+    list.current?.scrollToOffset({ offset: y, animated: false });
+    setVisible(index);
+    setPinchReport(rows[index]?.block.id ?? "");
+  }, [rows]);
   const changeSize = useCallback(
     (value: number) => {
-      const index = anchor.current;
-      update({ fontSize: Math.round(Math.max(14, Math.min(34, value))) });
-      setTimeout(() => scrollTo(index), 90);
-    },
-    [update, scrollTo],
-  );
-  const pinchBegin = useCallback(() => {
-    size.current = currentSize.current;
-    pinchAnchor.current = anchor.current;
-  }, []);
-  const pinchUpdate = useCallback(
-    (e: { scale: number }) => {
-      const next = Math.round(
-        Math.max(14, Math.min(34, size.current * e.scale)),
-      );
+      const next = Math.round(Math.max(14, Math.min(34, value)));
+      if (next === currentSize.current) return;
+      pendingAnchor.current = anchor.current;
       update({ fontSize: next });
     },
     [update],
   );
+  const pinchBegin = useCallback(() => {
+    activePinch.current = true;
+    size.current = currentSize.current;
+    finalSize.current = currentSize.current;
+    pinchAnchor.current = anchor.current;
+    setPinching(true);
+  }, []);
+  const pinchUpdate = useCallback((e: { scale: number }) => {
+    finalSize.current = Math.round(
+      Math.max(14, Math.min(34, size.current * e.scale)),
+    );
+    setPreviewScale(finalSize.current / size.current);
+  }, []);
   const pinchEnd = useCallback(() => {
-    const index = pinchAnchor.current;
-    setTimeout(() => scrollTo(index), 100);
-  }, [scrollTo]);
+    if (!activePinch.current) return;
+    activePinch.current = false;
+    setPinching(false);
+    setPreviewScale(1);
+    if (finalSize.current !== currentSize.current) {
+      pendingAnchor.current = pinchAnchor.current;
+      update({ fontSize: finalSize.current });
+    }
+  }, [update]);
+  useEffect(() => {
+    if (!__DEV__ || params.dev !== "pinch") return;
+    const timers = [23, 29, 18, 32, 23].map((value, i) =>
+      setTimeout(
+        () => {
+          pinchBegin();
+          pinchUpdate({ scale: value / currentSize.current });
+          pinchEnd();
+        },
+        5000 + i * 5000,
+      ),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [params.dev, pinchBegin, pinchUpdate, pinchEnd]);
   // Gesture builder registers callbacks; it does not invoke them during render.
   /* eslint-disable react-hooks/refs -- Gesture builder only registers event callbacks. */
   const pinch = useMemo(
@@ -407,7 +480,7 @@ export default function Reader() {
         .runOnJS(true)
         .onBegin(pinchBegin)
         .onUpdate(pinchUpdate)
-        .onEnd(pinchEnd),
+        .onFinalize(pinchEnd),
     [pinchBegin, pinchUpdate, pinchEnd],
   );
   /* eslint-enable react-hooks/refs */
@@ -498,6 +571,8 @@ export default function Reader() {
           justifyContent: "space-between",
           paddingHorizontal: 18,
           paddingVertical: 10,
+          opacity: chrome ? 1 : 0,
+          backgroundColor: p.paper + "ED",
           borderBottomWidth: 1,
           borderColor: p.line,
         }}
@@ -526,18 +601,55 @@ export default function Reader() {
       <GestureDetector gesture={pinch}>
         <FlatList
           ref={list}
+          scrollEnabled={!pinching}
+          onContentSizeChange={() => {
+            requestAnimationFrame(restoreResize);
+          }}
+          onTouchStart={(e) => {
+            touchStart.current = {
+              y: e.nativeEvent.pageY,
+              offset: lastScroll.current,
+            };
+          }}
+          onTouchEnd={(e) => {
+            if (
+              !activePinch.current &&
+              Math.abs(e.nativeEvent.pageY - touchStart.current.y) < 8 &&
+              Math.abs(lastScroll.current - touchStart.current.offset) < 8
+            )
+              setChrome((v) => !v);
+          }}
+          onScroll={(e) => {
+            const y = e.nativeEvent.contentOffset.y;
+            if (
+              !activePinch.current &&
+              pendingAnchor.current === null &&
+              Math.abs(y - lastScroll.current) > 12
+            )
+              setChrome(y < lastScroll.current);
+            lastScroll.current = y;
+          }}
+          scrollEventThrottle={32}
+          style={{ transform: [{ scale: previewScale }] }}
           data={rows}
+          CellRendererComponent={Cell}
           keyExtractor={(r) => r.block.id}
-          contentContainerStyle={{ paddingHorizontal: 25, paddingBottom: 90 }}
+          contentContainerStyle={{
+            paddingHorizontal: 25,
+            paddingBottom: viewportHeight,
+          }}
           initialNumToRender={10}
           windowSize={7}
           onScrollToIndexFailed={(info) => {
+            if (activePinch.current || pendingAnchor.current !== null) return;
             list.current?.scrollToOffset({
               offset: info.averageItemLength * info.index,
               animated: false,
             });
             setTimeout(
               () =>
+                !activePinch.current &&
+                pendingAnchor.current === null &&
                 list.current?.scrollToIndex({
                   index: info.index,
                   animated: false,
@@ -568,6 +680,7 @@ export default function Reader() {
       </GestureDetector>
       <View
         style={{
+          opacity: chrome ? 1 : 0,
           borderTopWidth: 1,
           borderColor: p.line,
           paddingHorizontal: 17,
@@ -575,7 +688,7 @@ export default function Reader() {
           paddingBottom: Math.max(12, insets.bottom),
           flexDirection: "row",
           gap: 10,
-          backgroundColor: p.bg,
+          backgroundColor: p.paper + "ED",
         }}
       >
         <Label
@@ -602,8 +715,8 @@ export default function Reader() {
             left: 12,
             right: 12,
             backgroundColor: "#303442",
-            borderRadius: 13,
-            padding: 10,
+            borderRadius: 22,
+            padding: 14,
             shadowColor: "#000",
             shadowOpacity: 0.25,
             shadowRadius: 8,
@@ -765,6 +878,19 @@ export default function Reader() {
             <Text style={{ fontSize: 10, color: "#D5D8E0" }}>{es.close}</Text>
           </Pressable>
         </View>
+      )}
+      {__DEV__ && params.dev === "pinch" && (
+        <Label
+          style={{
+            position: "absolute",
+            bottom: 85,
+            left: 20,
+            fontSize: 11,
+            color: p.accent,
+          }}
+        >
+          Ancla: {pinchReport} · {settings.fontSize}px
+        </Label>
       )}
       {notice && (
         <View

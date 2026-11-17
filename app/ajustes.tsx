@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollView, View } from "react-native";
 import { usePalette, useStore } from "../src/ui/store";
+import { Segments } from "../src/ui/segments";
 import { Label, Button, styles } from "../src/ui/common";
 import { es } from "../src/i18n/es";
 export default function Settings() {
@@ -9,22 +10,20 @@ export default function Settings() {
   return (
     <ScrollView
       style={{ backgroundColor: p.bg }}
-      contentContainerStyle={styles.pad}
+      contentContainerStyle={[
+        styles.pad,
+        { margin: 18, padding: 20, borderRadius: 22, backgroundColor: p.paper },
+      ]}
     >
       <Label style={[styles.eyebrow, { color: p.muted, marginBottom: 18 }]}>
-        {es.reading.toUpperCase()}
+        {es.reading}
       </Label>
       <Label style={{ marginBottom: 14 }}>{es.theme}</Label>
-      <View style={styles.row}>
-        {es.themes.map((t, i) => (
-          <Button
-            title={t}
-            key={t}
-            active={settings.theme === i}
-            onPress={() => update({ theme: i })}
-          />
-        ))}
-      </View>
+      <Segments
+        values={es.themes}
+        selected={settings.theme}
+        onChange={(theme) => update({ theme })}
+      />
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Label style={{ marginBottom: 14 }}>{es.size}</Label>
       <View style={styles.row}>
