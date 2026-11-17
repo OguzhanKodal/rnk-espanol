@@ -14,7 +14,7 @@ export default function Glossary() {
         normalize(g.term + " " + g.variants.join(" ")).includes(
           normalize(query),
         ),
-      ),
+      ).sort((a, b) => a.term.localeCompare(b.term, "es")),
     [query],
   );
   return (
@@ -40,6 +40,8 @@ export default function Glossary() {
         ListEmptyComponent={<Label>{es.noResults}</Label>}
         renderItem={({ item }) => (
           <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Abrir definición"
             onPress={() => setEntry(item)}
             style={{
               padding: 18,

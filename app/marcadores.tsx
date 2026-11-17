@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useState } from "react";
 import { View, FlatList, Pressable, Alert } from "react-native";
 import { router } from "expo-router";
@@ -25,7 +26,7 @@ export default function Marks() {
         keyExtractor={(m) => m.id}
         ListEmptyComponent={
           <View style={{ padding: 24, paddingTop: 90, alignItems: "center" }}>
-            <Label style={{ fontSize: 44, color: p.accent }}>◇</Label>
+            <Ionicons name={(["bookmark-outline", "color-fill-outline", "create-outline"] as const)[tab]} size={40} color={p.accent} />
             <Label
               style={{
                 fontSize: 22,
@@ -33,7 +34,7 @@ export default function Marks() {
                 marginTop: 20,
               }}
             >
-              {es.empty}
+              {["Tus páginas favoritas", "Pasajes para recordar", "Tus reflexiones"][tab]}
             </Label>
             <Label
               style={{
@@ -43,7 +44,7 @@ export default function Marks() {
                 marginTop: 10,
               }}
             >
-              {es.emptyHint}
+              {["Guarda un marcador al seleccionar un pasaje del libro.", "Selecciona un pasaje y toca Resaltar para conservarlo aquí.", "Selecciona un pasaje y toca Nota para escribir una reflexión."][tab]}
             </Label>
           </View>
         }
@@ -77,22 +78,14 @@ export default function Marks() {
             <Label style={{ fontSize: 17, fontWeight: "400" }}>
               {item.note ?? item.text}
             </Label>
-            <Label style={{ color: p.muted, fontSize: 12, marginTop: 12 }}>
+            <Label style={{ color: p.muted, fontSize: 14, marginTop: 12 }}>
               {getBook(item.bookId).title} · {es.page} {item.page}
             </Label>
+            <Pressable accessibilityRole="button" accessibilityLabel="Eliminar elemento" onPress={() => Alert.alert(es.deletePrompt, "", [{ text: es.cancel, style: "cancel" }, { text: es.remove, style: "destructive", onPress: () => deleteMark(item.id) }])} style={{ alignSelf: "flex-end", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Ionicons name="trash-outline" size={22} color={p.muted} /></Pressable>
           </Pressable>
         )}
       />
-      <Label
-        style={{
-          fontSize: 11,
-          color: p.muted,
-          textAlign: "center",
-          marginTop: 15,
-        }}
-      >
-        {es.deleteHint}
-      </Label>
+
     </View>
   );
 }
