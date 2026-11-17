@@ -1,0 +1,87 @@
+[
+  {
+    "pair": "appear-real",
+    "dimensions": [
+      1206,
+      2622
+    ],
+    "roi": [
+      0,
+      405,
+      1206,
+      1940
+    ],
+    "compared_pixels": 1724292,
+    "changed_pixels": 0,
+    "difference_bbox": null,
+    "glyph_core_changed_pixels": 0
+  },
+  {
+    "pair": "move-real",
+    "dimensions": [
+      1206,
+      2622
+    ],
+    "roi": [
+      0,
+      405,
+      1206,
+      1940
+    ],
+    "compared_pixels": 1645483,
+    "changed_pixels": 0,
+    "difference_bbox": null,
+    "glyph_core_changed_pixels": 0
+  },
+  {
+    "pair": "clear-real",
+    "dimensions": [
+      1206,
+      2622
+    ],
+    "roi": [
+      0,
+      405,
+      1206,
+      1940
+    ],
+    "compared_pixels": 1724292,
+    "changed_pixels": 0,
+    "difference_bbox": null,
+    "glyph_core_changed_pixels": 0
+  },
+  {
+    "pair": "appear-fixture",
+    "dimensions": [
+      1206,
+      2622
+    ],
+    "roi": [
+      0,
+      405,
+      1206,
+      1940
+    ],
+    "compared_pixels": 1720687,
+    "changed_pixels": 0,
+    "difference_bbox": null,
+    "glyph_core_changed_pixels": 0
+  },
+  {
+    "pair": "clear-fixture",
+    "dimensions": [
+      1206,
+      2622
+    ],
+    "roi": [
+      0,
+      405,
+      1206,
+      1940
+    ],
+    "compared_pixels": 1720687,
+    "changed_pixels": 0,
+    "difference_bbox": null,
+    "glyph_core_changed_pixels": 0
+  }
+]

@@ -78,6 +78,65 @@ const BlockView = memo(function BlockView({
   const b = row.block,
     text = blockText(b),
     ranges = useMemo(() => glossaryRanges(text), [text]);
+  const pieces = useMemo(() => {
+    if (!("spans" in b)) return [];
+    let offset = 0;
+    const tokens: { text: string; start: number; end: number; span: Span }[] =
+      [];
+    for (const span of b.spans) {
+      for (const part of (span.t === "arabic"
+        ? [span.text]
+        : span.text.match(/\S+\s*|\s+/gu)) ?? []) {
+        tokens.push({
+          text: part,
+          start: offset,
+          end: offset + part.length,
+          span,
+        });
+        offset += part.length;
+      }
+    }
+    // Split decoration boundaries once, independently of selection state. Spaces and
+    // punctuation never inherit a glossary term's underline.
+    return tokens.flatMap((t) => {
+      const cuts = [
+        ...new Set([
+          t.start,
+          t.end,
+          ...ranges.flatMap((g) =>
+            [g.start, g.end].filter((n) => n > t.start && n < t.end),
+          ),
+        ]),
+      ].sort((a, b) => a - b);
+      return cuts.slice(0, -1).map((start, i) => {
+        const end = cuts[i + 1];
+        const g = ranges.find((r) => start >= r.start && end <= r.end);
+        const mark = marks
+          .filter(
+            (m) => m.kind === "highlight" && m.start < end && m.end > start,
+          )
+          .at(-1);
+        return {
+          text: text.slice(start, end),
+          start,
+          end,
+          glossary: g,
+          style: {
+            fontFamily:
+              t.span.t === "arabic"
+                ? "Amiri_400Regular"
+                : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
+            color: t.span.t === "arabic" ? p.arabic : mark ? "#302920" : color,
+            writingDirection:
+              t.span.t === "arabic" ? ("rtl" as const) : ("auto" as const),
+            backgroundColor: mark?.color,
+            textDecorationLine: g ? ("underline" as const) : ("none" as const),
+            textDecorationColor: p.accent,
+          },
+        };
+      });
+    });
+  }, [b, color, font, marks, p.accent, p.arabic, ranges, text]);
   if (b.type === "pageBreak")
     return (
       <View
@@ -136,119 +195,25 @@ const BlockView = memo(function BlockView({
         {b.text || es.arabic}
       </Text>
     );
-  let offset = 0;
-  const tokens: { text: string; start: number; end: number; span: Span }[] = [];
-  for (const span of b.spans) {
-    for (const part of (span.t === "arabic"
-      ? [span.text]
-      : span.text.match(/\S+\s*|\s+/gu)) ?? []) {
-      tokens.push({
-        text: part,
-        start: offset,
-        end: offset + part.length,
-        span,
-      });
-      offset += part.length;
-    }
-  }
   return (
     <View style={{ marginBottom: 22 }}>
-      {selection ? (
-        <WordSelection
-          fontSize={fontSize}
-          start={selection.start}
-          end={selection.end}
-          onMove={onMove}
-          onDrag={onDrag}
-          onWord={(start, end) => onWord(b.id, start, end)}
-          testMove={testMove}
-          pieces={tokens.map((t) => {
-            const mark = marks
-              .filter(
-                (m) =>
-                  m.kind === "highlight" && m.start < t.end && m.end > t.start,
-              )
-              .at(-1);
-            return {
-              ...t,
-              style: {
-                fontSize,
-                color: mark
-                  ? "#302920"
-                  : t.span.t === "arabic"
-                    ? p.arabic
-                    : color,
-                backgroundColor: mark?.color,
-                fontFamily:
-                  t.span.t === "arabic"
-                    ? "Amiri_400Regular"
-                    : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-                textDecorationLine: ranges.some(
-                  (g) => t.start >= g.start && t.start < g.end,
-                )
-                  ? "underline"
-                  : "none",
-                textDecorationColor: p.accent,
-              },
-            };
-          })}
-        />
-      ) : (
-        <Text
-          style={{
-            fontSize,
-            fontFamily: font,
-            color,
-            lineHeight: fontSize * 1.85,
-            textAlign: b.type === "note" || fontSize > 28 ? "left" : "justify",
-            fontStyle: b.type === "note" ? "italic" : "normal",
-          }}
-        >
-          {tokens.map((t, i) => {
-            const g = ranges.find((r) => t.start >= r.start && t.start < r.end);
-            const mark = marks
-              .filter(
-                (m) =>
-                  m.kind === "highlight" && m.start < t.end && m.end > t.start,
-              )
-              .at(-1);
-            const selected = false;
-            return (
-              <Text
-                key={i}
-                suppressHighlighting
-                onLongPress={() => onSelect(b.id, t.start, t.end)}
-                onPress={() =>
-                  g ? onGlossary(g.entry) : onWord(b.id, t.start, t.end)
-                }
-                style={{
-                  fontFamily:
-                    t.span.t === "arabic"
-                      ? "Amiri_400Regular"
-                      : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-                  color:
-                    t.span.t === "arabic"
-                      ? p.arabic
-                      : mark || selected
-                        ? "#302920"
-                        : color,
-                  writingDirection: t.span.t === "arabic" ? "rtl" : "auto",
-                  backgroundColor: selected ? "#A9C8E9" : mark?.color,
-                  fontWeight: t.span.t === "bold" || mark?.bold ? "700" : "400",
-                  fontStyle:
-                    t.span.t === "italic" || mark?.italic
-                      ? "italic"
-                      : undefined,
-                  textDecorationLine: g ? "underline" : "none",
-                  textDecorationColor: p.accent,
-                }}
-              >
-                {t.text || es.arabic}
-              </Text>
-            );
-          })}
-        </Text>
-      )}
+      <WordSelection
+        pieces={pieces}
+        fontSize={fontSize}
+        font={font}
+        color={color}
+        start={selection?.start}
+        end={selection?.end}
+        onMove={onMove}
+        onDrag={onDrag}
+        onWord={(start, end) => onWord(b.id, start, end)}
+        onSelect={(start, end) => onSelect(b.id, start, end)}
+        onGlossary={(i) => {
+          const g = pieces[i].glossary;
+          if (g) onGlossary(g.entry);
+        }}
+        testMove={testMove}
+      />
       {marks.some((m) => m.kind === "note") && (
         <Pressable
           onPress={() => {
@@ -266,7 +231,9 @@ const BlockView = memo(function BlockView({
 export default function Reader() {
   const params = useLocalSearchParams();
   // A changed route is a new reading destination, even when Router reuses the screen.
-  return <ReaderContent key={`${params.book}:${params.block}:${params.page}`} />;
+  return (
+    <ReaderContent key={`${params.book}:${params.block}:${params.page}`} />
+  );
 }
 function ReaderContent() {
   const params = useLocalSearchParams<{
@@ -284,7 +251,9 @@ function ReaderContent() {
     rows = useMemo<Row[]>(
       () =>
         book.sections
-          .flatMap((s) => s.blocks.map((block) => ({ block, section: s.title })))
+          .flatMap((s) =>
+            s.blocks.map((block) => ({ block, section: s.title })),
+          )
           .map((row, absoluteIndex) => ({ ...row, absoluteIndex })),
       [book],
     );
@@ -297,13 +266,16 @@ function ReaderContent() {
         : rows.findIndex((r) => r.block.id === progress[book.id]?.blockId);
     return { start: Math.max(0, index), generation: 0 };
   });
-  const windowRows = useMemo(() => rows.slice(window.start), [rows, window.start]);
+  const windowRows = useMemo(
+    () => rows.slice(window.start),
+    [rows, window.start],
+  );
   const prependArmed = useRef(false);
+  const list = useRef<FlatList<Row>>(null);
   const [dragging, setDragging] = useState(false),
     [themes, setThemes] = useState(false),
     [pinching, setPinching] = useState(false),
     [previewScale, setPreviewScale] = useState(1),
-    [chrome, setChrome] = useState(true),
     [pinchReport, setPinchReport] = useState(""),
     [visible, setVisible] = useState(window.start),
     [selection, setSelection] = useState<Selection>(),
@@ -321,7 +293,6 @@ function ReaderContent() {
     activePinch = useRef(false),
     pendingAnchor = useRef<number | null>(null),
     lastScroll = useRef(0),
-    touchStart = useRef({ y: 0, offset: 0 }),
     finalSize = useRef(settings.fontSize);
   useEffect(() => {
     currentSize.current = settings.fontSize;
@@ -336,7 +307,6 @@ function ReaderContent() {
       lastScroll.current = 0;
       setVisible(i);
       setSelection(undefined);
-      setChrome(true);
       // Remount only for explicit jumps, never for prepending. This resets native
       // offsets and VirtualizedList measurement caches together, before painting.
       setWindow((w) => ({ start: i, generation: w.generation + 1 }));
@@ -348,7 +318,8 @@ function ReaderContent() {
       !prependArmed.current ||
       activePinch.current ||
       pendingAnchor.current !== null
-    ) return;
+    )
+      return;
     // Ignore mount/layout callbacks: only a user drag may expand the window.
     // Keep the list key and block keys stable so native position maintenance works.
     prependArmed.current = false;
@@ -359,7 +330,11 @@ function ReaderContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!__DEV__ || !params.dev) return;
-      const row = rows.find((r) => r.block.type === "paragraph");
+      const target = Math.max(
+        0,
+        rows.findIndex((r) => r.block.id === params.block),
+      );
+      const row = rows.slice(target).find((r) => r.block.type === "paragraph");
       if (params.dev === "dark") update({ theme: 3 });
       if (params.dev === "paper") update({ theme: 2, fontSize: 23 });
       if (params.dev === "galaxy") update({ theme: 4, fontSize: 23 });
@@ -408,7 +383,16 @@ function ReaderContent() {
             verified: false,
           },
         );
-      if (row && ["selection", "colors", "handles"].includes(params.dev)) {
+      if (
+        row &&
+        [
+          "selection",
+          "colors",
+          "handles",
+          "layout-on",
+          "layout-cycle",
+        ].includes(params.dev)
+      ) {
         setSelection({
           blockId: row.block.id,
           ...wordBounds(blockText(row.block), 0, 25),
@@ -416,8 +400,24 @@ function ReaderContent() {
         setColorMode(params.dev === "colors");
       }
     }, 100);
-    return () => clearTimeout(timer);
-  }, [params.dev, rows, update, putMark, book.id]);
+    const scroll =
+      __DEV__ && params.dev === "bars-scroll"
+        ? setTimeout(
+            () =>
+              list.current?.scrollToOffset({ offset: 320, animated: false }),
+            1500,
+          )
+        : undefined;
+    const clear =
+      __DEV__ && params.dev === "layout-cycle"
+        ? setTimeout(() => setSelection(undefined), 18000)
+        : undefined;
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(clear);
+      clearTimeout(scroll);
+    };
+  }, [params.dev, params.block, rows, update, putMark, book.id]);
   useEffect(() => {
     if (notice) {
       const t = setTimeout(() => setNotice(""), 2000);
@@ -637,7 +637,6 @@ function ReaderContent() {
           justifyContent: "space-between",
           paddingHorizontal: 18,
           paddingVertical: 10,
-          opacity: chrome ? 1 : 0,
           backgroundColor: p.paper + "ED",
           borderBottomWidth: 1,
           borderColor: p.line,
@@ -666,6 +665,7 @@ function ReaderContent() {
       </View>
       <GestureDetector gesture={pinch}>
         <FlatList
+          ref={list}
           key={window.generation}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
           onStartReached={prepend}
@@ -677,14 +677,10 @@ function ReaderContent() {
           onContentSizeChange={() => {
             requestAnimationFrame(restoreResize);
           }}
-          onTouchStart={(e) => {
+          onTouchStart={() => {
             touchKept.current = false;
-            touchStart.current = {
-              y: e.nativeEvent.pageY,
-              offset: lastScroll.current,
-            };
           }}
-          onTouchEnd={(e) => {
+          onTouchEnd={() => {
             if (selection)
               requestAnimationFrame(() => {
                 if (!touchKept.current) {
@@ -692,23 +688,9 @@ function ReaderContent() {
                   setColorMode(false);
                 }
               });
-            if (
-              !selection &&
-              !dragging &&
-              !activePinch.current &&
-              Math.abs(e.nativeEvent.pageY - touchStart.current.y) < 8 &&
-              Math.abs(lastScroll.current - touchStart.current.offset) < 8
-            )
-              setChrome((v) => !v);
           }}
           onScroll={(e) => {
             const y = e.nativeEvent.contentOffset.y;
-            if (
-              !activePinch.current &&
-              pendingAnchor.current === null &&
-              Math.abs(y - lastScroll.current) > 12
-            )
-              setChrome(y < lastScroll.current);
             if (y < lastScroll.current && y < viewportHeight * 2) prepend();
             lastScroll.current = y;
           }}
@@ -754,7 +736,6 @@ function ReaderContent() {
       </GestureDetector>
       <View
         style={{
-          opacity: chrome ? 1 : 0,
           borderTopWidth: 1,
           borderColor: p.line,
           paddingHorizontal: 17,

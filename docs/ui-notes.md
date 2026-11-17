@@ -33,9 +33,9 @@ node scripts-ui/capture-simulator.mjs
   glossary ranges are memoized, accent/case insensitive, longest phrase first,
   with word boundaries. Arabic spans remain together and use Amiri, red and RTL.
   Unresolved Arabic uses the contract's `[árabe]` marker.
-- Long press selects a word. The active paragraph uses measured word pieces and
-  two draggable endpoints; tapping outside the selection dismisses it. See V3
-  below for the mechanics, regression coverage and limits.
+- Long press selects a word. Every paragraph keeps the same native nested Text
+  structure in every selection state; two absolute draggable endpoints use hidden
+  native prefix measurements. Outside taps dismiss selection. See V5 below.
 - Selections use UTF-16 character offsets over concatenated spans (matching JS
   string slicing), anchored by stable block IDs. Highlight colours include their
   own dark foreground so they stay readable in dark mode.
@@ -281,3 +281,81 @@ Visually inspected evidence in `docs/ekran/v4/`: `00-timing-before.png`,
 `00-timing-after-page.png`, `00-timing-after-saved.png`, `01-saved-page-55.png`,
 `02-index-page-82.png`, `03-scroll-back.png`, `04-pinch-before-page-82.png`,
 `05-pinch-29-page-82.png`, `06-pinch-final-page-82.png`.
+
+
+## V5 · Stable selection and persistent reader bars (17 November 2026)
+
+Causes and fixes (supersedes the V2/V3 chrome and selection limitations):
+
+- The active paragraph previously replaced native inline Text with a flex-wrapped
+  View of word Text views, and added 24 pt bottom padding. It now always renders
+  the same nested Text spans, keys, font metrics and margins. Selection changes
+  only span background colours. The handles and toolbar are absolute overlays.
+  Geometry uses invisible absolute native Text prefix copies with onTextLayout;
+  standalone token widths locate each prefix's final word. Copies exist only for
+  the selected paragraph, are hidden from accessibility, and are memoized so handle
+  movement does not recreate them. PanResponder's 44 pt targets, nearest-word hit
+  testing, UTF-16 boundaries, drag scroll lock and outside-tap dismissal remain.
+- Removed chrome state and all hide-on-scroll / toggle-on-tap paths. Header and
+  footer retain their original reserved space, outside the FlatList, at all times.
+  Text cannot slip beneath either bar. Native scroll and selection toolbar mounting
+  do not resize the viewport.
+- No explicit letterSpacing or non-breaking-space insertion existed in the reader.
+  The problematic path used iOS native justification over per-word attributed spans.
+  Body text now uses the owner's permitted fallback: **left alignment with natural
+  wrapping**, no hyphenation, no character stretching. Both Papel antiguo and
+  Oscuro captures demonstrate the fallback; these are intentionally not justified.
+- Glossary decoration previously applied to a complete `word + trailing spaces`
+  token if its start fell within a term, also underlining trailing punctuation.
+  Tokens now split at exact glossary start/end boundaries, independently of
+  selection, so only the matched term receives decoration.
+- Window slicing, initial destination resolution, backward prepending, pinch
+  transform/finalization, Índice and all seven palettes retain their existing paths.
+  No initial mount timer, scroll traversal or native dependency was added.
+
+Reproduction and verification:
+
+- `node scripts-ui/capture-reader-v5.mjs` terminates Expo Go before each deep link,
+  reuses the existing Metro on 8081 and captures the booted iPhone 16 Pro / iOS 18.5.
+  It does not start/stop Metro. `dev=layout-on` selects the destination paragraph;
+  `dev=layout-cycle` clears that selection at 18 s in the same launch;
+  `dev=handles` moves the end through production hit-testing;
+  `dev=bars-scroll` performs a native 320 pt scroll through production onScroll.
+  Dev selection now chooses the first paragraph at/after the requested block,
+  rather than a pageBreak or an offscreen first paragraph of the book.
+- `npx tsc --noEmit`, `npx expo lint`, all three existing tests-ui suites
+  (reader, selection, locations), and `python3 scripts-ui/verify-simulator-state.py`
+  pass. `git diff --check` passes. No git add or commit was run.
+- Pixel verification: install Pillow in a temporary venv, then run
+  `python scripts-ui/verify-selection-pixels.py`. Five off/on, moved and cleared
+  comparisons cover the real page-55 paragraph and a short fixture with following
+  Arabic, note, page separator and heading blocks. Native PNG size is 1206 × 2622;
+  comparison ROI is x=0..1205, y=405..1939 (full unobscured reading viewport above
+  the absolute toolbar/shadow). OS clock and obscured toolbar area are excluded.
+  Only known highlight/handle blues seed masks, filled across their row extent and
+  dilated 4 px for antialiasing; changed pixels never seed the mask. JSON records
+  exact compared-pixel counts. All five comparisons report **zero changed pixels**
+  outside the colour-derived mask. A second check compares solid foreground glyph
+  cores across the whole ROI, including inside the highlight, excluding only
+  handle overlays: also zero changed pixels in all five pairs. Diff, glyph-diff
+  and mask PNGs are retained for auditing.
+
+Evidence in `docs/ekran/v5/`:
+
+- `01-selection-off.png`, `02-selection-on.png`, `03-handle-moved.png`.
+- `04-mid-book-bars-paper.png`: Papel antiguo natural wrapping;
+  `04-mid-scroll-bars.png`: native mid-scroll, both bars visible.
+- `05-natural-wrapping-oscuro.png`, `11-glossary-closeup.png` (2× crop).
+- `06-cycle-on.png`, `07-cycle-cleared.png`: same-launch real paragraph.
+- `08-fixture-off.png`, `09-fixture-on.png`, `10-fixture-cleared.png`: following
+  blocks remain in place during selection appearance and clearing.
+- `pixel-report.json`, `*-diff.png`, `*-mask.png`: reproducible pixel evidence.
+
+Limits: simulator hooks exercise production selection/drag callbacks and native
+scrolling, not physical finger input. Physical iPhone/Android gesture feel and
+mixed-direction, multi-line Arabic handle geometry remain unverified. Prefix
+measurement adds work only upon selecting a paragraph (proportional to its token
+prefixes); it is absent from idle/restoration rendering. Persisted bold/italic
+formatting deliberately changes font metrics; selection appearance/movement/clear
+never changes those metrics. The existing block-level pinch/restore granularity
+and within-one-paragraph drag boundary remain.
