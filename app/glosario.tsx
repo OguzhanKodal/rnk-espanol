@@ -10,11 +10,13 @@ export default function Glossary() {
     [entry, setEntry] = useState<GlossaryEntry>();
   const entries = useMemo(
     () =>
-      glossary.filter((g) =>
-        normalize(g.term + " " + g.variants.join(" ")).includes(
-          normalize(query),
-        ),
-      ).sort((a, b) => a.term.localeCompare(b.term, "es")),
+      glossary
+        .filter((g) =>
+          normalize(g.term + " " + g.variants.join(" ")).includes(
+            normalize(query),
+          ),
+        )
+        .sort((a, b) => a.term.localeCompare(b.term, "es")),
     [query],
   );
   return (

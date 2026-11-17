@@ -81,7 +81,12 @@ export function usePrayer() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return {
       values: [
-        times.fajr, times.sunrise, times.dhuhr, times.asr, times.maghrib, times.isha,
+        times.fajr,
+        times.sunrise,
+        times.dhuhr,
+        times.asr,
+        times.maghrib,
+        times.isha,
       ],
       tomorrowFajr: new PrayerTimes(coord, tomorrow, method).fajr,
     };
@@ -104,12 +109,13 @@ export function usePrayer() {
     .map((n) => String(n).padStart(2, "0"))
     .join(":");
   const formatter = useMemo(
-    () => new Intl.DateTimeFormat("es", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: tz,
-    }),
+    () =>
+      new Intl.DateTimeFormat("es", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: tz,
+      }),
     [tz],
   );
   const format = (d: Date) => formatter.format(d);
@@ -143,7 +149,9 @@ export function PrayerCard() {
       }}
     >
       <Label style={{ fontSize: 22, fontWeight: "600" }}>{es.next}</Label>
-      <Label style={{ fontSize: 16, color: p.muted, marginTop: 8 }}>{data.city}</Label>
+      <Label style={{ fontSize: 16, color: p.muted, marginTop: 8 }}>
+        {data.city}
+      </Label>
       <View
         style={[
           styles.row,

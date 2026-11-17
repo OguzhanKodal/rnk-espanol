@@ -126,7 +126,28 @@ export function Sheet({
             <Label style={{ fontSize: 23, fontWeight: "600", flex: 1 }}>
               {title}
             </Label>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" onPress={onClose} style={{ minWidth: target, minHeight: target, alignItems: "center", justifyContent: "center", backgroundColor: p.line, borderRadius: radius.control }}><Ionicons name="close" size={24} color={p.text} /></Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar"
+              onPress={onClose}
+              style={{
+                minWidth: target,
+                minHeight: target,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: p.line,
+                borderRadius: radius.control,
+              }}
+            >
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="close"
+                size={24}
+                color={p.text}
+              />
+            </Pressable>
           </View>
           <ScrollView keyboardShouldPersistTaps="handled">
             {children}
@@ -139,7 +160,11 @@ export function Sheet({
 export const styles = StyleSheet.create({
   pad: { padding: space.xl, paddingBottom: 60 },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
-  card: { padding: space.xl, borderRadius: radius.card, marginBottom: space.lg },
+  card: {
+    padding: space.xl,
+    borderRadius: radius.card,
+    marginBottom: space.lg,
+  },
   title: {
     fontSize: 30,
     fontWeight: "700",

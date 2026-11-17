@@ -39,7 +39,11 @@ export function Segments({
           }}
         >
           <Label
-            style={{ fontSize: 14, textAlign: "center", fontWeight: i === selected ? "600" : "400" }}
+            style={{
+              fontSize: 14,
+              textAlign: "center",
+              fontWeight: i === selected ? "600" : "400",
+            }}
           >
             {value}
           </Label>

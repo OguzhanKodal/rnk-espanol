@@ -42,16 +42,34 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
       <Image
         source={coverArt[book.shelf]}
         resizeMode="stretch"
-        style={{ position: "absolute", width: w, height: h, borderRadius: small ? 2 : 4 }}
+        style={{
+          position: "absolute",
+          width: w,
+          height: h,
+          borderRadius: small ? 2 : 4,
+        }}
       />
       <LinearGradient
         colors={["#0007", "#FFFFFF14", "#0000"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: small ? 10 : 16 }}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: small ? 10 : 16,
+        }}
       />
       {small ? (
-        <View style={{ flex: 1, paddingHorizontal: 10, paddingTop: 12, paddingBottom: 12 }}>
+        <View
+          style={{
+            flex: 1,
+            paddingHorizontal: 10,
+            paddingTop: 12,
+            paddingBottom: 12,
+          }}
+        >
           <Label
             style={{
               fontFamily: "EBGaramond_400Regular",
@@ -182,11 +200,17 @@ export default function Home() {
       return () => clearTimeout(t);
     }
   }, [toast]);
-  const resumeBook = catalog.books.find(b => b.available && progress[b.id] && hasBook(b.id));
+  const resumeBook = catalog.books.find(
+    (b) => b.available && progress[b.id] && hasBook(b.id),
+  );
   const saved = resumeBook ? progress[resumeBook.id] : undefined;
   const content = resumeBook ? getBook(resumeBook.id) : undefined;
-  const section = content?.sections.find(s => s.blocks.some(b => b.id === saved?.blockId));
-  const pages = content ? Math.max(...content.sections.flatMap(s => s.blocks.map(b => b.page))) : 1;
+  const section = content?.sections.find((s) =>
+    s.blocks.some((b) => b.id === saved?.blockId),
+  );
+  const pages = content
+    ? Math.max(...content.sections.flatMap((s) => s.blocks.map((b) => b.page)))
+    : 1;
   return (
     <View style={{ flex: 1, backgroundColor: p.bg }}>
       <ScrollView
@@ -197,13 +221,77 @@ export default function Home() {
         }}
         contentContainerStyle={{ paddingBottom: 35 }}
       >
-        {resumeBook && saved && <Pressable accessibilityRole="button" accessibilityLabel={`Continuar leyendo ${resumeBook.title}, página ${saved.page} de ${pages}`} onPress={() => router.push({ pathname: "/reader", params: { book: resumeBook.id } })} style={({ pressed }) => ({ margin: 24, padding: 20, borderRadius: 20, backgroundColor: p.paper, borderWidth: 1, borderColor: p.line, opacity: pressed ? 0.75 : 1 })}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}><Ionicons name="book-outline" size={24} color={p.accent} /><Label style={{ fontSize: 22, fontWeight: "600", flex: 1 }}>Continuar leyendo</Label><Ionicons name="chevron-forward" size={20} color={p.accent} /></View>
-          <Label style={{ marginTop: 16, fontSize: 18, fontWeight: "600" }}>{resumeBook.title}</Label>
-          <Label style={{ marginTop: 6, color: p.muted }}>{section?.title}</Label>
-          <View style={{ height: 4, backgroundColor: p.line, borderRadius: 2, marginTop: 16 }}><View style={{ width: `${Math.min(100, saved.page / pages * 100)}%`, height: 4, backgroundColor: p.accent, borderRadius: 2 }} /></View>
-          <Label style={{ marginTop: 10, fontSize: 14, color: p.muted }}>Página {saved.page} de {pages}</Label>
-        </Pressable>}
+        {resumeBook && saved && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Continuar leyendo ${resumeBook.title}, página ${saved.page} de ${pages}`}
+            onPress={() =>
+              router.push({
+                pathname: "/reader",
+                params: { book: resumeBook.id },
+              })
+            }
+            style={({ pressed }) => ({
+              margin: 24,
+              padding: 20,
+              borderRadius: 20,
+              backgroundColor: p.paper,
+              borderWidth: 1,
+              borderColor: p.line,
+              opacity: pressed ? 0.75 : 1,
+            })}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="book-outline"
+                size={24}
+                color={p.accent}
+              />
+              <Label style={{ fontSize: 22, fontWeight: "600", flex: 1 }}>
+                Continuar leyendo
+              </Label>
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="chevron-forward"
+                size={20}
+                color={p.accent}
+              />
+            </View>
+            <Label style={{ marginTop: 16, fontSize: 18, fontWeight: "600" }}>
+              {resumeBook.title}
+            </Label>
+            <Label style={{ marginTop: 6, color: p.muted }}>
+              {section?.title}
+            </Label>
+            <View
+              style={{
+                height: 4,
+                backgroundColor: p.line,
+                borderRadius: 2,
+                marginTop: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: `${Math.min(100, (saved.page / pages) * 100)}%`,
+                  height: 4,
+                  backgroundColor: p.accent,
+                  borderRadius: 2,
+                }}
+              />
+            </View>
+            <Label style={{ marginTop: 10, fontSize: 14, color: p.muted }}>
+              Página {saved.page} de {pages}
+            </Label>
+          </Pressable>
+        )}
         {(["coran", "coleccion", "breves"] as const).map((shelf, si) => (
           <View key={shelf}>
             <LinearGradient
@@ -282,8 +370,32 @@ export default function Home() {
                           : setToast(true)
                       }
                     >
-                      <View style={{ opacity: book.available ? 1 : 0.55 }}><Cover book={book} index={i} /></View>
-                      {!book.available && <View style={{ position: "absolute", bottom: 8, left: 6, right: 6, paddingVertical: 5, backgroundColor: "#29251F", borderRadius: 6 }}><Label style={{ color: "#fff", fontSize: 12, textAlign: "center" }}>Próximamente</Label></View>}
+                      <View style={{ opacity: book.available ? 1 : 0.55 }}>
+                        <Cover book={book} index={i} />
+                      </View>
+                      {!book.available && (
+                        <View
+                          style={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 6,
+                            right: 6,
+                            paddingVertical: 5,
+                            backgroundColor: "#29251F",
+                            borderRadius: 6,
+                          }}
+                        >
+                          <Label
+                            style={{
+                              color: "#fff",
+                              fontSize: 12,
+                              textAlign: "center",
+                            }}
+                          >
+                            Próximamente
+                          </Label>
+                        </View>
+                      )}
                       {book.available && progress[book.id] && (
                         <View
                           style={{

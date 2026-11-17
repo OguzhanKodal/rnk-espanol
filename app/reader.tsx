@@ -125,11 +125,18 @@ const BlockView = memo(function BlockView({
           end,
           glossary: g,
           style: {
+            ...(t.span.t === "arabic" ? { fontSize: fontSize * 1.15 } : {}),
             fontFamily:
               t.span.t === "arabic"
                 ? "Amiri_400Regular"
                 : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-            color: mark ? (t.span.t === "arabic" ? highlightArabic : highlightInk) : t.span.t === "arabic" ? p.arabic : color,
+            color: mark
+              ? t.span.t === "arabic"
+                ? highlightArabic
+                : highlightInk
+              : t.span.t === "arabic"
+                ? p.arabic
+                : color,
             writingDirection:
               t.span.t === "arabic" ? ("rtl" as const) : ("auto" as const),
             backgroundColor: mark?.color,
@@ -139,7 +146,7 @@ const BlockView = memo(function BlockView({
         };
       });
     });
-  }, [b, color, font, marks, p.accent, p.arabic, ranges, text]);
+  }, [b, color, font, fontSize, marks, p.accent, p.arabic, ranges, text]);
   if (b.type === "pageBreak")
     return (
       <View
@@ -225,7 +232,14 @@ const BlockView = memo(function BlockView({
           }}
           style={{ alignSelf: "flex-end", padding: 5 }}
         >
-          <Ionicons name="create-outline" size={18} color={muted} />
+          <Ionicons
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            name="create-outline"
+            size={18}
+            color={muted}
+          />
         </Pressable>
       )}
     </View>
@@ -653,7 +667,14 @@ function ReaderContent() {
           onPress={() => router.replace("/")}
           style={{ padding: 10 }}
         >
-          <Ionicons name="chevron-back" size={24} color={p.text} />
+          <Ionicons
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-back"
+            size={24}
+            color={p.text}
+          />
         </Pressable>
         <Label
           numberOfLines={1}
@@ -666,7 +687,14 @@ function ReaderContent() {
           onPress={() => setToc(true)}
           style={{ padding: 10 }}
         >
-          <Ionicons name="list-outline" size={24} color={p.text} />
+          <Ionicons
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            name="list-outline"
+            size={24}
+            color={p.text}
+          />
         </Pressable>
       </View>
       <GestureDetector gesture={pinch}>
@@ -763,7 +791,12 @@ function ReaderContent() {
           }}
           accessibilityLabel={es.theme}
           accessibilityRole="button"
-          style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
+          style={{
+            minWidth: 44,
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           onLongPress={() => changeSize(settings.fontSize + 1)}
         >
           <Label style={{ fontSize: 19, color: p.text }}>Aa</Label>
@@ -865,7 +898,11 @@ function ReaderContent() {
             </>
           ) : (
             <View
-              style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
             >
               {[
                 {
@@ -916,9 +953,24 @@ function ReaderContent() {
                   key={a.title}
                   accessibilityLabel={a.title}
                   onPress={a.action}
-                  style={{ minHeight: 44, paddingVertical: 8, alignItems: "center", width: "33%" }}
+                  style={{
+                    minHeight: 44,
+                    paddingVertical: 8,
+                    alignItems: "center",
+                    width: "33%",
+                  }}
                 >
-                  <Ionicons name={a.icon as React.ComponentProps<typeof Ionicons>["name"]} size={23} color={a.title === es.highlight ? "#F2D856" : "#fff"} style={{ marginBottom: 6 }} />
+                  <Ionicons
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    name={
+                      a.icon as React.ComponentProps<typeof Ionicons>["name"]
+                    }
+                    size={23}
+                    color={a.title === es.highlight ? "#F2D856" : "#fff"}
+                    style={{ marginBottom: 6 }}
+                  />
                   <Text
                     maxFontSizeMultiplier={2}
                     style={{ color: "#fff", fontSize: 13, textAlign: "center" }}

@@ -64,7 +64,14 @@ export function ThemePicker({
             }}
           />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Ionicons name="color-palette-outline" size={25} color={p.text} />
+            <Ionicons
+              accessible={false}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              name="color-palette-outline"
+              size={25}
+              color={p.text}
+            />
             <Label style={{ fontSize: 26, fontWeight: "600", flex: 1 }}>
               {es.theme}
             </Label>
@@ -80,7 +87,14 @@ export function ThemePicker({
                 backgroundColor: p.line,
               }}
             >
-              <Ionicons name="close" size={24} color={p.text} />
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="close"
+                size={24}
+                color={p.text}
+              />
             </Pressable>
           </View>
           <Label
@@ -98,6 +112,7 @@ export function ThemePicker({
               <Pressable
                 key={i}
                 accessibilityRole="radio"
+                accessibilityLabel={es.themes[i]}
                 accessibilityState={{ checked: settings.theme === i }}
                 onPress={() => update({ theme: i })}
                 style={{
@@ -128,7 +143,15 @@ export function ThemePicker({
                   <Text style={{ color: t.accent }}>{es.sampleEnd}</Text>.
                 </Text>
                 {settings.theme === i && (
-                  <Ionicons name="checkmark-circle" size={24} color={t.accent} style={{ position: "absolute", right: 18, top: 24 }} />
+                  <Ionicons
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    name="checkmark-circle"
+                    size={24}
+                    color={t.accent}
+                    style={{ position: "absolute", right: 18, top: 24 }}
+                  />
                 )}
               </Pressable>
             ))}

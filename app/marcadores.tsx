@@ -26,7 +26,22 @@ export default function Marks() {
         keyExtractor={(m) => m.id}
         ListEmptyComponent={
           <View style={{ padding: 24, paddingTop: 90, alignItems: "center" }}>
-            <Ionicons name={(["bookmark-outline", "color-fill-outline", "create-outline"] as const)[tab]} size={40} color={p.accent} />
+            <Ionicons
+              accessible={false}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              name={
+                (
+                  [
+                    "bookmark-outline",
+                    "color-fill-outline",
+                    "create-outline",
+                  ] as const
+                )[tab]
+              }
+              size={40}
+              color={p.accent}
+            />
             <Label
               style={{
                 fontSize: 22,
@@ -34,7 +49,13 @@ export default function Marks() {
                 marginTop: 20,
               }}
             >
-              {["Tus páginas favoritas", "Pasajes para recordar", "Tus reflexiones"][tab]}
+              {
+                [
+                  "Tus páginas favoritas",
+                  "Pasajes para recordar",
+                  "Tus reflexiones",
+                ][tab]
+              }
             </Label>
             <Label
               style={{
@@ -44,7 +65,13 @@ export default function Marks() {
                 marginTop: 10,
               }}
             >
-              {["Guarda un marcador al seleccionar un pasaje del libro.", "Selecciona un pasaje y toca Resaltar para conservarlo aquí.", "Selecciona un pasaje y toca Nota para escribir una reflexión."][tab]}
+              {
+                [
+                  "Guarda un marcador al seleccionar un pasaje del libro.",
+                  "Selecciona un pasaje y toca Resaltar para conservarlo aquí.",
+                  "Selecciona un pasaje y toca Nota para escribir una reflexión.",
+                ][tab]
+              }
             </Label>
           </View>
         }
@@ -81,11 +108,39 @@ export default function Marks() {
             <Label style={{ color: p.muted, fontSize: 14, marginTop: 12 }}>
               {getBook(item.bookId).title} · {es.page} {item.page}
             </Label>
-            <Pressable accessibilityRole="button" accessibilityLabel="Eliminar elemento" onPress={() => Alert.alert(es.deletePrompt, "", [{ text: es.cancel, style: "cancel" }, { text: es.remove, style: "destructive", onPress: () => deleteMark(item.id) }])} style={{ alignSelf: "flex-end", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Ionicons name="trash-outline" size={22} color={p.muted} /></Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Eliminar elemento"
+              onPress={() =>
+                Alert.alert(es.deletePrompt, "", [
+                  { text: es.cancel, style: "cancel" },
+                  {
+                    text: es.remove,
+                    style: "destructive",
+                    onPress: () => deleteMark(item.id),
+                  },
+                ])
+              }
+              style={{
+                alignSelf: "flex-end",
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="trash-outline"
+                size={22}
+                color={p.muted}
+              />
+            </Pressable>
           </Pressable>
         )}
       />
-
     </View>
   );
 }

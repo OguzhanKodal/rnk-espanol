@@ -68,12 +68,26 @@ export default function Prayer() {
         }}
         style={rowStyle}
       >
-        <Ionicons name="location-outline" color={p.accent} size={23} />
+        <Ionicons
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          name="location-outline"
+          color={p.accent}
+          size={23}
+        />
         <View style={{ flex: 1 }}>
           <Label style={{ fontSize: 14, color: p.muted }}>Ubicación</Label>
           <Label style={{ fontWeight: "600", marginTop: 4 }}>{data.city}</Label>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={p.muted} />
+        <Ionicons
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          name="chevron-forward"
+          size={18}
+          color={p.muted}
+        />
       </Pressable>
       <View style={{ marginTop: 14 }}>
         <PrayerCard />
@@ -174,7 +188,14 @@ export default function Prayer() {
         />
         {country === undefined && (
           <Pressable onPress={() => void locate()} style={rowStyle}>
-            <Ionicons name="navigate-outline" size={22} color={p.accent} />
+            <Ionicons
+              accessible={false}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              name="navigate-outline"
+              size={22}
+              color={p.accent}
+            />
             <Label style={{ color: p.accent }}>Usar mi ubicación</Label>
           </Pressable>
         )}
@@ -205,7 +226,14 @@ export default function Prayer() {
               }}
             >
               <Label style={{ flex: 1 }}>{item.name}</Label>
-              <Ionicons name="chevron-forward" color={p.muted} size={16} />
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="chevron-forward"
+                color={p.muted}
+                size={16}
+              />
             </Pressable>
           ))}
         {(country === undefined ? countries : countries[country].cities).filter(

@@ -138,7 +138,9 @@ export function WordSelection({
           <Text
             key={i}
             accessibilityRole={piece.glossary ? "link" : undefined}
-            accessibilityHint={piece.glossary ? "Toca para consultar el glosario" : undefined}
+            accessibilityHint={
+              piece.glossary ? "Toca para consultar el glosario" : undefined
+            }
             suppressHighlighting
             onLongPress={() => onSelect(piece.start, piece.end)}
             onPress={() =>
@@ -147,9 +149,12 @@ export function WordSelection({
             style={[
               piece.style,
               {
-                color: active && piece.start < end && piece.end > start
-                  ? piece.style.writingDirection === "rtl" ? p.selectionArabic : p.selectionText
-                  : piece.style.color,
+                color:
+                  active && piece.start < end && piece.end > start
+                    ? piece.style.writingDirection === "rtl"
+                      ? p.selectionArabic
+                      : p.selectionText
+                    : piece.style.color,
                 backgroundColor:
                   active && piece.start < end && piece.end > start
                     ? p.selection

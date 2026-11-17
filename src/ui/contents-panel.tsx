@@ -64,7 +64,13 @@ export function ContentsPanel({
         useNativeDriver: true,
       }).start();
     } else {
-      Animated.timing(slide, { toValue: -width, duration: 220, useNativeDriver: true }).start(({ finished }) => { if (finished) setMounted(false); });
+      Animated.timing(slide, {
+        toValue: -width,
+        duration: 220,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setMounted(false);
+      });
     }
     return () => slide.stopAnimation();
   }, [visible, width, slide]);
@@ -168,7 +174,14 @@ export function ContentsPanel({
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="close" size={24} color={p.text} />
+              <Ionicons
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                name="close"
+                size={24}
+                color={p.text}
+              />
             </Pressable>
           </View>
           <Label
@@ -207,7 +220,6 @@ export function ContentsPanel({
             style={{ marginTop: 20 }}
             keyboardShouldPersistTaps="handled"
           >
-
             {tab === 0
               ? flat.map((e) => (
                   <View
@@ -262,7 +274,18 @@ export function ContentsPanel({
                         }
                         style={{ padding: 14 }}
                       >
-                        <Ionicons name={collapsed.has(e.id + e.depth) ? "chevron-forward" : "chevron-down"} size={20} color={p.muted} />
+                        <Ionicons
+                          accessible={false}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no-hide-descendants"
+                          name={
+                            collapsed.has(e.id + e.depth)
+                              ? "chevron-forward"
+                              : "chevron-down"
+                          }
+                          size={20}
+                          color={p.muted}
+                        />
                       </Pressable>
                     )}
                   </View>

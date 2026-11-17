@@ -49,163 +49,177 @@ function Navigation() {
   if (!ready) return <ActivityIndicator style={{ flex: 1 }} />;
   return (
     <>
-    <StatusBar style={p.dark ? "light" : "dark"} />
-    <Drawer
-      drawerContent={(props) => (
-        <DrawerContentScrollView {...props}>
-          <View style={{ padding: 24, paddingTop: 20, paddingBottom: 28 }}>
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 16,
-                backgroundColor: p.accent,
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 16,
-              }}
-            >
-              <Ionicons name="book-outline" size={28} color={p.accentText} />
-            </View>
-            <Label style={{ fontSize: 26, fontWeight: "700" }}>
-              {es.brand}
-            </Label>
-            <Label style={{ fontSize: 15, color: p.muted, marginTop: 5 }}>
-              Español
-            </Label>
-          </View>
-          {[
-            {
-              title: "Lectura",
-              items: [
-                { name: "index", title: es.library, icon: "library-outline" },
-                {
-                  name: "marcadores",
-                  title: es.marks,
-                  icon: "bookmark-outline",
-                },
-                {
-                  name: "frases",
-                  title: es.quotes,
-                  icon: "chatbox-ellipses-outline",
-                },
-                { name: "glosario", title: es.glossary, icon: "text-outline" },
-              ],
-            },
-            {
-              title: "Herramientas",
-              items: [
-                { name: "oracion", title: es.prayers, icon: "time-outline" },
-              ],
-            },
-            {
-              title: "App",
-              items: [
-                {
-                  name: "ajustes",
-                  title: es.settings,
-                  icon: "settings-outline",
-                },
-                {
-                  name: "acerca",
-                  title: es.about,
-                  icon: "information-circle-outline",
-                },
-              ],
-            },
-          ].map((group) => (
-            <View
-              key={group.title}
-              style={{ marginHorizontal: 12, marginBottom: 20 }}
-            >
-              <Label
+      <StatusBar style={p.dark ? "light" : "dark"} />
+      <Drawer
+        drawerContent={(props) => (
+          <DrawerContentScrollView {...props}>
+            <View style={{ padding: 24, paddingTop: 20, paddingBottom: 28 }}>
+              <View
                 style={{
-                  color: p.muted,
-                  fontSize: 13,
-                  marginLeft: 14,
-                  marginBottom: 8,
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  backgroundColor: p.accent,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 16,
                 }}
               >
-                {group.title}
+                <Ionicons
+                  accessible={false}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  name="book-outline"
+                  size={28}
+                  color={p.accentText}
+                />
+              </View>
+              <Label style={{ fontSize: 26, fontWeight: "700" }}>
+                {es.brand}
               </Label>
-              {group.items.map((item) => {
-                const selected =
-                  props.state.routes[props.state.index].name === item.name;
-                return (
-                  <Pressable
-                    key={item.name}
-                    onPress={() => {
-                      props.navigation.navigate(item.name);
-                      props.navigation.closeDrawer();
-                    }}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: 14,
-                      borderRadius: 14,
-                      backgroundColor: selected ? p.line : "transparent",
-                      marginBottom: 2,
-                    }}
-                  >
-                    <Ionicons
-                      name={
-                        item.icon as React.ComponentProps<
-                          typeof Ionicons
-                        >["name"]
-                      }
-                      color={selected ? p.accent : p.muted}
-                      size={23}
-                    />
-                    <Label
+              <Label style={{ fontSize: 15, color: p.muted, marginTop: 5 }}>
+                Español
+              </Label>
+            </View>
+            {[
+              {
+                title: "Lectura",
+                items: [
+                  { name: "index", title: es.library, icon: "library-outline" },
+                  {
+                    name: "marcadores",
+                    title: es.marks,
+                    icon: "bookmark-outline",
+                  },
+                  {
+                    name: "frases",
+                    title: es.quotes,
+                    icon: "chatbox-ellipses-outline",
+                  },
+                  {
+                    name: "glosario",
+                    title: es.glossary,
+                    icon: "text-outline",
+                  },
+                ],
+              },
+              {
+                title: "Herramientas",
+                items: [
+                  { name: "oracion", title: es.prayers, icon: "time-outline" },
+                ],
+              },
+              {
+                title: "Aplicación",
+                items: [
+                  {
+                    name: "ajustes",
+                    title: es.settings,
+                    icon: "settings-outline",
+                  },
+                  {
+                    name: "acerca",
+                    title: es.about,
+                    icon: "information-circle-outline",
+                  },
+                ],
+              },
+            ].map((group) => (
+              <View
+                key={group.title}
+                style={{ marginHorizontal: 12, marginBottom: 20 }}
+              >
+                <Label
+                  style={{
+                    color: p.muted,
+                    fontSize: 13,
+                    marginLeft: 14,
+                    marginBottom: 8,
+                  }}
+                >
+                  {group.title}
+                </Label>
+                {group.items.map((item) => {
+                  const selected =
+                    props.state.routes[props.state.index].name === item.name;
+                  return (
+                    <Pressable
+                      key={item.name}
+                      onPress={() => {
+                        props.navigation.navigate(item.name);
+                        props.navigation.closeDrawer();
+                      }}
                       style={{
-                        fontWeight: selected ? "600" : "400",
-                        color: selected ? p.accent : p.text,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: 14,
+                        borderRadius: 14,
+                        backgroundColor: selected ? p.line : "transparent",
+                        marginBottom: 2,
                       }}
                     >
-                      {item.title}
-                    </Label>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))}
-        </DrawerContentScrollView>
-      )}
-      screenOptions={{
-        headerStyle: { backgroundColor: p.bg },
-        headerTintColor: p.text,
-        headerShadowVisible: false,
-        headerTitleStyle: { fontSize: 28, fontWeight: "700" },
-        drawerStyle: { backgroundColor: p.bg, width: 310 },
-        drawerActiveTintColor: p.accent,
-        drawerInactiveTintColor: p.text,
-        drawerActiveBackgroundColor: p.line,
-        sceneStyle: { backgroundColor: p.bg },
-      }}
-    >
-      <Drawer.Screen name="index" options={{ title: es.library }} />
-      <Drawer.Screen name="glosario" options={{ title: es.glossary }} />
-      <Drawer.Screen name="frases" options={{ title: es.quotes }} />
-      <Drawer.Screen name="marcadores" options={{ title: es.marks }} />
-      <Drawer.Screen
-        name="oracion"
-        options={{
-          title: es.prayers,
-          headerTitleStyle: { fontSize: 20, fontWeight: "600" },
+                      <Ionicons
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        name={
+                          item.icon as React.ComponentProps<
+                            typeof Ionicons
+                          >["name"]
+                        }
+                        color={selected ? p.accent : p.muted}
+                        size={23}
+                      />
+                      <Label
+                        style={{
+                          fontWeight: selected ? "600" : "400",
+                          color: selected ? p.accent : p.text,
+                        }}
+                      >
+                        {item.title}
+                      </Label>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+          </DrawerContentScrollView>
+        )}
+        screenOptions={{
+          headerStyle: { backgroundColor: p.bg },
+          headerTintColor: p.text,
+          headerShadowVisible: false,
+          headerTitleStyle: { fontSize: 28, fontWeight: "700" },
+          drawerStyle: { backgroundColor: p.bg, width: 310 },
+          drawerActiveTintColor: p.accent,
+          drawerInactiveTintColor: p.text,
+          drawerActiveBackgroundColor: p.line,
+          sceneStyle: { backgroundColor: p.bg },
         }}
-      />
-      <Drawer.Screen name="ajustes" options={{ title: es.settings }} />
-      <Drawer.Screen name="acerca" options={{ title: es.about }} />
-      <Drawer.Screen
-        name="reader"
-        options={{
-          headerShown: false,
-          drawerItemStyle: { display: "none" },
-          swipeEnabled: false,
-        }}
-      />
-    </Drawer>
+      >
+        <Drawer.Screen name="index" options={{ title: es.library }} />
+        <Drawer.Screen name="glosario" options={{ title: es.glossary }} />
+        <Drawer.Screen name="frases" options={{ title: es.quotes }} />
+        <Drawer.Screen name="marcadores" options={{ title: es.marks }} />
+        <Drawer.Screen
+          name="oracion"
+          options={{
+            title: es.prayers,
+            headerTitleStyle: { fontSize: 20, fontWeight: "600" },
+          }}
+        />
+        <Drawer.Screen name="ajustes" options={{ title: es.settings }} />
+        <Drawer.Screen name="acerca" options={{ title: es.about }} />
+        <Drawer.Screen
+          name="reader"
+          options={{
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
+            swipeEnabled: false,
+          }}
+        />
+      </Drawer>
     </>
   );
 }

@@ -21,7 +21,9 @@ export default function About() {
       >
         {es.brand}
       </Label>
-      <Label style={{ fontSize: 18, color: p.muted, marginTop: 8 }}>{es.language}</Label>
+      <Label style={{ fontSize: 18, color: p.muted, marginTop: 8 }}>
+        {es.language}
+      </Label>
       <Label style={{ fontSize: 17, marginTop: 30 }}>{es.aboutText}</Label>
       <Label style={{ color: p.muted, marginTop: 20, fontSize: 14 }}>
         {es.version}
