@@ -1,6 +1,8 @@
+import { router } from "expo-router";
+
 import { dateInZone } from "./prayer-date";
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { Coordinates, CalculationMethod, PrayerTimes } from "adhan";
 import { useStore, usePalette } from "./store";
 import { Label, styles } from "./common";
@@ -34,7 +36,32 @@ export function usePrayer() {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  const city = cities[settings.city] ?? cities[0],
+  const legacy = cities[settings.city] ?? cities[0];
+  const city = settings.location
+      ? {
+          name: settings.location.name + ", " + settings.location.country,
+          lat: settings.location.lat,
+          lon: settings.location.lng,
+          tz: settings.location.timeZone,
+        }
+      : {
+          ...legacy,
+          name:
+            legacy.name +
+            ", " +
+            ([
+              "España",
+              "España",
+              "México",
+              "Colombia",
+              "Argentina",
+              "Perú",
+              "Chile",
+              "Venezuela",
+              "Estados Unidos",
+              "Turquía",
+            ][settings.city] ?? "España"),
+        },
     tz = settings.coords
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : city.tz;
@@ -77,12 +104,12 @@ export function usePrayer() {
     .map((n) => String(n).padStart(2, "0"))
     .join(":");
   const format = (d: Date) =>
-    d.toLocaleTimeString("es", {
+    new Intl.DateTimeFormat("es", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
       timeZone: tz,
-    });
+    }).format(d);
   return {
     city: settings.coords ? es.local : city.name,
     values,
@@ -96,8 +123,15 @@ export function PrayerCard() {
   const data = usePrayer(),
     p = usePalette();
   return (
-    <View
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Ver horarios de oración"
+      onPress={() => router.push("/oracion")}
       style={{
+        shadowColor: "#301020",
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
         backgroundColor: p.paper,
         borderRadius: 20,
         padding: 22,
@@ -106,7 +140,7 @@ export function PrayerCard() {
       }}
     >
       <Label style={[styles.eyebrow, { color: p.muted }]}>
-        {es.next.toUpperCase()} · {data.city}
+        {es.next} · {data.city}
       </Label>
       <View
         style={[
@@ -114,7 +148,7 @@ export function PrayerCard() {
           { justifyContent: "space-between", marginVertical: 15 },
         ]}
       >
-        <Label style={{ fontFamily: "EBGaramond_600SemiBold", fontSize: 32 }}>
+        <Label style={{ fontWeight: "600", fontSize: 32 }}>
           {es.prayerNames[data.next]}
         </Label>
         <Label
@@ -141,6 +175,6 @@ export function PrayerCard() {
           ),
         )}
       </View>
-    </View>
+    </Pressable>
   );
 }

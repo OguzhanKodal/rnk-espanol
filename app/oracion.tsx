@@ -1,14 +1,31 @@
-import React from "react";
-import { ScrollView, View, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView, View, Alert, Pressable, TextInput } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { countries } from "../src/data/locations";
+import { normalize } from "../src/content/load";
 import { usePalette, useStore } from "../src/ui/store";
-import { Label, Button, styles } from "../src/ui/common";
-import { PrayerCard, cities, usePrayer } from "../src/ui/prayer";
+import { Label, Button, Sheet, styles } from "../src/ui/common";
+import { PrayerCard, usePrayer } from "../src/ui/prayer";
 import { es } from "../src/i18n/es";
 export default function Prayer() {
   const p = usePalette(),
     { settings, update } = useStore(),
     data = usePrayer();
+  const [picker, setPicker] = useState(false),
+    [country, setCountry] = useState<number>(),
+    [query, setQuery] = useState("");
+  const params = useLocalSearchParams();
+  useEffect(() => {
+    if (__DEV__ && ["countries", "cities"].includes(String(params.dev))) {
+      const timer = setTimeout(() => {
+        setPicker(true);
+        setCountry(params.dev === "cities" ? 0 : undefined);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [params.dev]);
   async function locate() {
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
@@ -22,30 +39,64 @@ export default function Prayer() {
           longitude: pos.coords.longitude,
         },
       });
+      setPicker(false);
     } catch {
       Alert.alert(es.locationDenied);
     }
   }
+  const rowStyle = {
+    padding: 17,
+    borderRadius: 15,
+    backgroundColor: p.paper,
+    marginBottom: 6,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 12,
+  };
   return (
     <ScrollView
+      keyboardShouldPersistTaps="handled"
       style={{ backgroundColor: p.bg }}
       contentContainerStyle={styles.pad}
     >
-      <Label style={[styles.eyebrow, { color: p.muted, marginBottom: 18 }]}>
-        {es.prayerIntro.toUpperCase()}
-      </Label>
-      <PrayerCard />
-      <View style={{ marginTop: 20 }}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          setCountry(undefined);
+          setQuery("");
+          setPicker(true);
+        }}
+        style={rowStyle}
+      >
+        <Ionicons name="location-outline" color={p.accent} size={23} />
+        <View style={{ flex: 1 }}>
+          <Label style={{ fontSize: 13, color: p.muted }}>Ubicación</Label>
+          <Label style={{ fontWeight: "600", marginTop: 4 }}>{data.city}</Label>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={p.muted} />
+      </Pressable>
+      <View style={{ marginTop: 14 }}>
+        <PrayerCard />
+      </View>
+      <View
+        style={{
+          marginTop: 20,
+          borderRadius: 20,
+          overflow: "hidden",
+          backgroundColor: p.paper,
+        }}
+      >
         {data.values.map((d, i) => (
           <View
             key={i}
             style={[
-              styles.row,
+              rowStyle,
               {
-                justifyContent: "space-between",
-                padding: 17,
-                borderBottomWidth: 1,
+                marginBottom: 0,
+                borderRadius: 0,
+                borderBottomWidth: i === 5 ? 0 : 0.5,
                 borderColor: p.line,
+                justifyContent: "space-between",
               },
             ]}
           >
@@ -63,24 +114,17 @@ export default function Prayer() {
           </View>
         ))}
       </View>
-      <Label style={{ color: p.muted, fontSize: 12, marginVertical: 20 }}>
+      <Label style={{ color: p.muted, fontSize: 12, marginVertical: 16 }}>
         {es.calculated}
       </Label>
-      <Button title={es.location} onPress={() => void locate()} />
-      <Label style={{ fontWeight: "600", marginTop: 25, marginBottom: 12 }}>
-        {es.city}
-      </Label>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {cities.map((c, i) => (
-          <Button
-            key={c.name}
-            title={c.name}
-            active={!settings.coords && settings.city === i}
-            onPress={() => update({ city: i, coords: undefined })}
-          />
-        ))}
-      </View>
-      <Label style={{ fontWeight: "600", marginTop: 25, marginBottom: 12 }}>
+      <Label
+        style={{
+          fontWeight: "600",
+          fontSize: 18,
+          marginTop: 12,
+          marginBottom: 12,
+        }}
+      >
         {es.method}
       </Label>
       <View style={{ gap: 8 }}>
@@ -93,6 +137,83 @@ export default function Prayer() {
           />
         ))}
       </View>
+      <Sheet
+        title={
+          country === undefined ? "Seleccionar país" : countries[country].name
+        }
+        visible={picker}
+        onClose={() => setPicker(false)}
+      >
+        {country !== undefined && (
+          <Pressable
+            onPress={() => {
+              setCountry(undefined);
+              setQuery("");
+            }}
+            style={{ paddingBottom: 16 }}
+          >
+            <Label style={{ color: p.accent }}>‹ Todos los países</Label>
+          </Pressable>
+        )}
+        <TextInput
+          accessibilityLabel={
+            country === undefined ? "Buscar país" : "Buscar ciudad"
+          }
+          placeholder={country === undefined ? "Buscar país" : "Buscar ciudad"}
+          placeholderTextColor={p.muted}
+          value={query}
+          onChangeText={setQuery}
+          style={{
+            backgroundColor: p.bg,
+            color: p.text,
+            padding: 15,
+            borderRadius: 13,
+            fontSize: 16,
+            marginBottom: 12,
+          }}
+        />
+        {country === undefined && (
+          <Pressable onPress={() => void locate()} style={rowStyle}>
+            <Ionicons name="navigate-outline" size={22} color={p.accent} />
+            <Label style={{ color: p.accent }}>Usar mi ubicación</Label>
+          </Pressable>
+        )}
+        {(country === undefined ? countries : countries[country].cities)
+          .map((item, i) => ({ item, i }))
+          .filter(({ item }) => normalize(item.name).includes(normalize(query)))
+          .map(({ item, i }) => (
+            <Pressable
+              key={item.name}
+              style={[
+                rowStyle,
+                { borderBottomWidth: 0.5, borderColor: p.line },
+              ]}
+              onPress={() => {
+                if (country === undefined) {
+                  setCountry(i);
+                  setQuery("");
+                } else {
+                  update({
+                    location: {
+                      ...countries[country].cities[i],
+                      country: countries[country].name,
+                    },
+                    coords: undefined,
+                  });
+                  setPicker(false);
+                }
+              }}
+            >
+              <Label style={{ flex: 1 }}>{item.name}</Label>
+              <Ionicons name="chevron-forward" color={p.muted} size={16} />
+            </Pressable>
+          ))}
+        {(country === undefined ? countries : countries[country].cities).filter(
+          (item) => normalize(item.name).includes(normalize(query)),
+        ).length === 0 && (
+          <Label style={{ padding: 16, color: p.muted }}>{es.noResults}</Label>
+        )}
+      </Sheet>
     </ScrollView>
   );
 }

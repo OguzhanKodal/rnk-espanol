@@ -5,6 +5,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import type { SavedLocation } from "../data/locations";
 import * as SQLite from "expo-sqlite";
 import { Alert } from "react-native";
 import { es } from "../i18n/es";
@@ -28,6 +29,7 @@ export type Settings = {
   font: number;
   city: number;
   method: number;
+  location?: SavedLocation;
   coords?: { latitude: number; longitude: number };
 };
 export type Progress = { blockId: string; page: number };
@@ -167,7 +169,7 @@ export const palettes = [
     text: "#E9DFCD",
     muted: "#B2A897",
     line: "#414545",
-    accent: "#E0A58A",
+    accent: "#F098A9",
   },
 ];
 export const usePalette = () => palettes[useStore().settings.theme];
