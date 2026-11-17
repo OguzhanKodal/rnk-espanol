@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -546,21 +547,13 @@ function ReaderContent() {
           rows.find((r) => r.block.id === s.blockId)!.block,
         );
         const bounds = wordBounds(text, start, end);
-        return {
-          ...s,
-          start:
-            edge === "start"
-              ? bounds.start < s.end
-                ? bounds.start
-                : s.start
-              : s.start,
-          end:
-            edge === "end"
-              ? bounds.end > s.start
-                ? bounds.end
-                : s.end
-              : s.end,
-        };
+        const nextStart =
+          edge === "start" && bounds.start < s.end ? bounds.start : s.start;
+        const nextEnd =
+          edge === "end" && bounds.end > s.start ? bounds.end : s.end;
+        return nextStart === s.start && nextEnd === s.end
+          ? s
+          : { ...s, start: nextStart, end: nextEnd };
       });
     },
     [rows],
@@ -568,6 +561,17 @@ function ReaderContent() {
   const onDrag = useCallback((active: boolean) => {
     touchKept.current = true;
     setDragging(active);
+  }, []);
+  const selectionRef = useRef(selection);
+  useLayoutEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
+  const onGlossary = useCallback((g: GlossaryEntry) => {
+    if (selectionRef.current) {
+      setSelection(undefined);
+      return;
+    }
+    setGloss(g);
   }, []);
   const selectedBlock = rows.find(
     (r) => r.block.id === selection?.blockId,
@@ -720,13 +724,7 @@ function ReaderContent() {
               marks={marksByBlock[item.block.id] ?? emptyMarks}
               onWord={onWord}
               onSelect={onSelect}
-              onGlossary={(g) => {
-                if (selection) {
-                  setSelection(undefined);
-                  return;
-                }
-                setGloss(g);
-              }}
+              onGlossary={onGlossary}
               onMove={onMove}
               onDrag={onDrag}
               testMove={__DEV__ && params.dev === "handles"}

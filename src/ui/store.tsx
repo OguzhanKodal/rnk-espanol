@@ -62,6 +62,7 @@ function write(key: string, value: unknown) {
     .catch(() => Alert.alert(es.error));
   return queue;
 }
+const PaletteContext = createContext<(typeof palettes)[number] | null>(null);
 const Context = createContext<{
   ready: boolean;
   settings: Settings;
@@ -171,20 +172,22 @@ export function Store({ children }: { children: React.ReactNode }) {
     [],
   );
   return (
-    <Context.Provider
-      value={{
-        ready,
-        settings,
-        update,
-        marks,
-        putMark,
-        deleteMark,
-        progress,
-        saveProgress,
-      }}
-    >
-      {children}
-    </Context.Provider>
+    <PaletteContext.Provider value={palettes[settings.theme] ?? palettes[2]}>
+      <Context.Provider
+        value={{
+          ready,
+          settings,
+          update,
+          marks,
+          putMark,
+          deleteMark,
+          progress,
+          saveProgress,
+        }}
+      >
+        {children}
+      </Context.Provider>
+    </PaletteContext.Provider>
   );
 }
 export const useStore = () => useContext(Context);
@@ -262,4 +265,4 @@ export const palettes = [
   },
 ];
 export const usePalette = () =>
-  palettes[useStore().settings.theme] ?? palettes[2];
+  useContext(PaletteContext) ?? palettes[2];
