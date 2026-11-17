@@ -5,3 +5,5 @@ export const target = 44;
 // All persisted highlight swatches use dark ink. Arabic stays red on highlights.
 export const highlightInk = "#201B18";
 export const highlightArabic = "#65131C";
+// Brand mark (drawer logo): the red of the Risale-i Nur leather covers.
+export const brandRed = "#A8302C";

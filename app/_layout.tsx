@@ -3,6 +3,7 @@ import { router, Href } from "expo-router";
 import { getLinkingURL } from "expo-linking";
 import React from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { brandRed } from "../src/ui/tokens";
 import {
   View,
   ActivityIndicator,
@@ -59,7 +60,7 @@ function Navigation() {
                   width: 52,
                   height: 52,
                   borderRadius: 16,
-                  backgroundColor: p.accent,
+                  backgroundColor: brandRed,
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: 16,
@@ -71,7 +72,7 @@ function Navigation() {
                   importantForAccessibility="no-hide-descendants"
                   name="book-outline"
                   size={28}
-                  color={p.accentText}
+                  color={"#FFFFFF"}
                 />
               </View>
               <Label style={{ fontSize: 26, fontWeight: "700" }}>
