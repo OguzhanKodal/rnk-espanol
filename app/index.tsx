@@ -73,7 +73,7 @@ function Cover({ book, index }: { book: CatalogBook; index: number }) {
           style={{
             fontFamily: "EBGaramond_600SemiBold",
             fontSize:
-              book.title.length > 30 ? 15.5 : book.title.length > 25 ? 18 : 22,
+              book.title.length > 30 ? 13 : book.title.length > 25 ? 18 : 22,
             color: "#F4DDA8",
             textAlign: "center",
             marginVertical: 12,
