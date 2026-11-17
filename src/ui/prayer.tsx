@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 
 import { dateInZone } from "./prayer-date";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Coordinates, CalculationMethod, PrayerTimes } from "adhan";
 import { useStore, usePalette } from "./store";
@@ -66,31 +66,31 @@ export function usePrayer() {
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : city.tz;
   const localDate = dateInZone(now, tz);
-  const method = [
-    CalculationMethod.MuslimWorldLeague,
-    CalculationMethod.NorthAmerica,
-    CalculationMethod.UmmAlQura,
-  ][settings.method]();
-  const coord = new Coordinates(
-    settings.coords?.latitude ?? city.lat,
-    settings.coords?.longitude ?? city.lon,
-  );
-  const times = new PrayerTimes(coord, localDate, method);
-  const values = [
-    times.fajr,
-    times.sunrise,
-    times.dhuhr,
-    times.asr,
-    times.maghrib,
-    times.isha,
-  ];
+  const day = localDate.getTime();
+  const lat = settings.coords?.latitude ?? city.lat;
+  const lon = settings.coords?.longitude ?? city.lon;
+  const { values, tomorrowFajr } = useMemo(() => {
+    const method = [
+      CalculationMethod.MuslimWorldLeague,
+      CalculationMethod.NorthAmerica,
+      CalculationMethod.UmmAlQura,
+    ][settings.method]();
+    const coord = new Coordinates(lat, lon);
+    const times = new PrayerTimes(coord, new Date(day), method);
+    const tomorrow = new Date(day);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return {
+      values: [
+        times.fajr, times.sunrise, times.dhuhr, times.asr, times.maghrib, times.isha,
+      ],
+      tomorrowFajr: new PrayerTimes(coord, tomorrow, method).fajr,
+    };
+  }, [day, lat, lon, settings.method]);
   let next = values.findIndex((d, i) => i !== 1 && d > now);
   let target = values[next];
   if (next < 0) {
     next = 0;
-    const tomorrow = new Date(localDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    target = new PrayerTimes(coord, tomorrow, method).fajr;
+    target = tomorrowFajr;
   }
   const seconds = Math.max(
     0,
@@ -103,13 +103,16 @@ export function usePrayer() {
   ]
     .map((n) => String(n).padStart(2, "0"))
     .join(":");
-  const format = (d: Date) =>
-    new Intl.DateTimeFormat("es", {
+  const formatter = useMemo(
+    () => new Intl.DateTimeFormat("es", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
       timeZone: tz,
-    }).format(d);
+    }),
+    [tz],
+  );
+  const format = (d: Date) => formatter.format(d);
   return {
     city: settings.coords ? es.local : city.name,
     values,
