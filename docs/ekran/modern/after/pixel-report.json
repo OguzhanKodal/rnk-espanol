@@ -1,0 +1,46 @@
+[
+  {
+    "pair": "real",
+    "roi": [
+      0,
+      405,
+      1206,
+      1660
+    ],
+    "changed_pixels_outside_selection": 0,
+    "changed_solid_glyph_pixels": 0
+  },
+  {
+    "pair": "arabic-fixture",
+    "roi": [
+      0,
+      405,
+      1206,
+      1660
+    ],
+    "changed_pixels_outside_selection": 0,
+    "changed_solid_glyph_pixels": 0
+  },
+  {
+    "pair": "handle-move",
+    "roi": [
+      0,
+      405,
+      1206,
+      1660
+    ],
+    "changed_pixels_outside_selection": 0,
+    "changed_solid_glyph_pixels": 0
+  },
+  {
+    "pair": "native-drag",
+    "roi": [
+      0,
+      130,
+      402,
+      560
+    ],
+    "changed_pixels_outside_selection": 0,
+    "changed_solid_glyph_pixels": 0
+  }
+]
