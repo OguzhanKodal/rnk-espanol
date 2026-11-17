@@ -13,8 +13,7 @@ For the iOS simulator:
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl boot 'iPhone 16 Pro'
-node scripts-ui/gen-registry.mjs
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer npx expo start --ios --port 8081
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl openurl booted exp://127.0.0.1:8081
 node scripts-ui/capture-simulator.mjs
 ```
 
@@ -42,7 +41,7 @@ node scripts-ui/capture-simulator.mjs
 - Selections use UTF-16 character offsets over concatenated spans (matching JS
   string slicing), anchored by stable block IDs. Highlight colours include their
   own dark foreground so they stay readable in dark mode.
-- Font size is clamped to 14–34 and persisted. Pinch causes live reflow and restores
+- Font size is clamped to 14–34 and persisted. Pinch previews a scale transform, then reflows once and restores
   the block visible at gesture start; restoration is at block granularity, not an
   exact glyph/pixel. Settings also offer font controls and two bundled serif
   families with genuine bold/italic fonts. UI chrome has no fixed lineHeight.
@@ -51,7 +50,7 @@ node scripts-ui/capture-simulator.mjs
   intentionally keeps schema/migrations small for this local-only app; a large
   personal annotation library may warrant normalized tables later.
 - Prayer calculation uses adhan, default Muslim World League, three methods,
-  ten fallback cities, optional foreground GPS, local civil dates in the chosen
+  a country/city directory with legacy fallback cities, optional foreground GPS, local civil dates in the chosen
   city's time zone, tomorrow's Fayr after Isha, and a one-second countdown.
   Sunrise appears in the full schedule, not as a prayer in the five-time card.
   The location permission is Spanish in app.json; Expo Go's own permission prompt
@@ -112,3 +111,55 @@ The concurrent content report's earlier UI errors predate these fixes.
 
 Read-only SQLite verification after process termination/relaunch confirms the three
 annotation kinds, exact offsets/styles, notes, real-book progress and settings.
+
+## V2 · iPhone feedback (17 November 2026)
+
+- Location now opens a searchable country → city sheet, with GPS first. The
+  bundled WGS84 city-centre directory covers all 27 requested countries/territories
+  and 117 cities (4–6 per country). Puerto Rico is grouped as requested. Manual
+  selections persist their name, country, coordinates and IANA zone in the
+  existing SQLite settings row; legacy numeric city choices remain readable.
+  GPS uses the device's civil zone. Both prayer screens use the same settings.
+  Intl.DateTimeFormat formats times in the selected city's zone, including DST.
+  Accent-insensitive country/city search retains original indexes after filtering.
+- Pinch freezes list scrolling and the viewability anchor. A scale transform
+  previews size without text reflow or database writes. Finalize (including
+  cancellation) applies the final clamped size once, then the content-size event
+  waits one animation frame for cell layout measurements and performs one
+  scrollToOffset correction to the captured first visible block. No gesture
+  callback repeatedly scrolls. Initial-navigation retries are blocked during
+  pinch/restoration. Bottom reading space lets even short books keep their final
+  blocks aligned after shrinking; the page does not hit its scroll limit first.
+- Reproduce sequential resizing in Expo Go with
+  exp://127.0.0.1:8081/--/reader?book=muestra&block=s1-b2&dev=pinch
+  (development builds only). It invokes the same begin/update/finalize callbacks
+  at 23 → 29 → 18 → 32 → 23 px, five seconds apart. Inspect the paragraph starting
+  “Una palabra de esperanza” and the s1-b2 anchor in the five pinch PNGs.
+  This exercises reflow/anchor restoration; it does not inject physical
+  two-finger touches or establish the tactile feel on the owner's iPhone.
+- Corán uses green leather, gold borders and only the title plus ornament;
+  all Risale covers use varied burgundy reds, gold double borders and serif
+  brand/title/author. Explicit catalog cover colours are deliberately superseded
+  by shelf semantics. Wood is lighter, grain/shadows softer, spine shading adds
+  depth. The introductory library hero is removed.
+- UI chrome uses system sans-serif, normal sentence-case labels and crimson
+  accents. The drawer has Ionicons and Lectura/Herramientas/App groups. Lists use
+  inset cards; marks/theme choices use a shared segmented control. Prayer cards
+  navigate to the schedule. Reader bars use translucent colour, hide on downward
+  scrolling and toggle on taps; their layout space stays fixed to avoid shifting
+  the reading paragraph. Selection/colour panels have rounded floating surfaces.
+- SDK 58 reference, Router, Location and icon documentation were consulted.
+  Ionicons is explicitly installed with expo install and works in Expo Go.
+  Existing Metro on 8081 was reused throughout; no server was started/stopped.
+  Content assets, scripts/ and the pre-existing registry edit were left alone.
+
+V2 validation: TypeScript and Expo lint pass, as do reader.test.mjs,
+locations.test.mjs (all 117 cities in summer/winter), and the existing read-only
+SQLite simulator regression. Tijuana was selected through the actual filtered
+country/city UI; its America/Tijuana times replaced Madrid's and the selection
+survived relaunch. Screenshots in ekran/v2/ include all requested screens,
+additional light/dark lists, the shared saved location on Home, and individual
+pinch steps. Images were opened for visual inspection; intermediate captures
+with a truncated prayer title and a transient JSX text warning were replaced.
+
+Final pinch capture: all five 23/29/18/32/23 px states keep the beginning of\nthe same s1-b2 paragraph at the top of the list viewport, including shrinking\nthe short fixture to 18 px. No source edits or hot reload occurred during this\nfinal sequence. All individual step PNGs were opened and inspected.\n
