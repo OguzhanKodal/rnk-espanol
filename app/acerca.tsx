@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { Linking, Pressable, ScrollView, View } from "react-native";
 import { catalog, getBook, hasBook } from "../src/content/load";
 import { usePalette } from "../src/ui/store";
 import { Label, styles } from "../src/ui/common";
@@ -45,6 +45,24 @@ export default function About() {
             ))}
           </View>
         ))}
+      <View style={[styles.divider, { backgroundColor: p.line }]} />
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel="Powered by Nüve Dijital, abre nuvedigital.com"
+        onPress={() => Linking.openURL("https://nuvedigital.com")}
+        hitSlop={8}
+        style={({ pressed }) => ({
+          alignSelf: "center",
+          minHeight: 44,
+          justifyContent: "center",
+          marginBottom: 24,
+          opacity: pressed ? 0.6 : 1,
+        })}
+      >
+        <Label style={{ color: p.muted, fontSize: 14 }}>
+          Powered by <Label style={{ color: p.accent, fontSize: 14, fontWeight: "600" }}>Nüve Dijital</Label>
+        </Label>
+      </Pressable>
     </ScrollView>
   );
 }
