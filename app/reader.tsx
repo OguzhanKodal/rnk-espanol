@@ -478,7 +478,7 @@ export default function Reader() {
     () =>
       Gesture.Pinch()
         .runOnJS(true)
-        .onBegin(pinchBegin)
+        .onStart(pinchBegin)
         .onUpdate(pinchUpdate)
         .onFinalize(pinchEnd),
     [pinchBegin, pinchUpdate, pinchEnd],
