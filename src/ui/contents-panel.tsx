@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Animated,
@@ -51,7 +52,9 @@ export function ContentsPanel({
   const [tab, setTab] = useState(devTab),
     [query, setQuery] = useState(""),
     [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [mounted, setMounted] = useState(visible);
   const [slide] = useState(() => new Animated.Value(-width));
+  if (visible && !mounted) setMounted(true);
   useEffect(() => {
     if (visible) {
       slide.setValue(-width);
@@ -60,7 +63,10 @@ export function ContentsPanel({
         duration: 240,
         useNativeDriver: true,
       }).start();
+    } else {
+      Animated.timing(slide, { toValue: -width, duration: 220, useNativeDriver: true }).start(({ finished }) => { if (finished) setMounted(false); });
     }
+    return () => slide.stopAnimation();
   }, [visible, width, slide]);
   const entries = useMemo(() => {
     let index = 0;
@@ -114,7 +120,7 @@ export function ContentsPanel({
   const active = flat
     .filter((e) => currentIndex >= e.index && currentIndex < e.end)
     .at(-1);
-  const kinds = ["", "bookmark", "note", "highlight"];
+  const kinds = ["", "bookmark", "highlight", "note"];
   const saved = marks.filter(
     (m) => m.bookId === book.id && m.kind === kinds[tab],
   );
@@ -124,7 +130,7 @@ export function ContentsPanel({
   };
   return (
     <Modal
-      visible={visible}
+      visible={mounted}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -162,7 +168,7 @@ export function ContentsPanel({
                 justifyContent: "center",
               }}
             >
-              <Label style={{ fontSize: 30 }}>×</Label>
+              <Ionicons name="close" size={24} color={p.text} />
             </Pressable>
           </View>
           <Label
@@ -176,7 +182,7 @@ export function ContentsPanel({
             {book.title} · {es.currentPage} {page}
           </Label>
           <Segments
-            values={[es.toc, es.marks, es.notes, es.highlights]}
+            values={[es.toc, es.marks, es.highlights, es.notes]}
             selected={tab}
             onChange={setTab}
           />
@@ -201,17 +207,7 @@ export function ContentsPanel({
             style={{ marginTop: 20 }}
             keyboardShouldPersistTaps="handled"
           >
-            <Label
-              style={{
-                fontSize: 11,
-                fontWeight: "700",
-                letterSpacing: 1.3,
-                color: p.muted,
-                marginBottom: 12,
-              }}
-            >
-              {book.title.toLocaleUpperCase("es")}
-            </Label>
+
             {tab === 0
               ? flat.map((e) => (
                   <View
@@ -243,7 +239,7 @@ export function ContentsPanel({
                         {e.title}
                       </Label>
                       <Label
-                        style={{ fontSize: 11, color: p.muted, marginTop: 4 }}
+                        style={{ fontSize: 14, color: p.muted, marginTop: 4 }}
                       >
                         {es.page}{" "}
                         {book.sections.flatMap((s) => s.blocks)[e.index]?.page}
@@ -266,9 +262,7 @@ export function ContentsPanel({
                         }
                         style={{ padding: 14 }}
                       >
-                        <Label style={{ color: p.muted }}>
-                          {collapsed.has(e.id + e.depth) ? "›" : "⌄"}
-                        </Label>
+                        <Ionicons name={collapsed.has(e.id + e.depth) ? "chevron-forward" : "chevron-down"} size={20} color={p.muted} />
                       </Pressable>
                     )}
                   </View>
@@ -310,8 +304,8 @@ export function ContentsPanel({
                   [
                     "",
                     es.emptyBookMarks,
-                    es.emptyBookNotes,
                     es.emptyBookHighlights,
+                    es.emptyBookNotes,
                   ][tab]
                 }
               </Label>

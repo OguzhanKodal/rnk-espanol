@@ -7,6 +7,7 @@ import React, {
   memo,
 } from "react";
 import { View, Text, PanResponder, TextStyle } from "react-native";
+import { usePalette } from "./store";
 import { es } from "../i18n/es";
 export { wordBounds } from "./selection-range";
 export type WordPiece = {
@@ -47,6 +48,7 @@ export function WordSelection({
   onGlossary: (index: number) => void;
   testMove?: boolean;
 }) {
+  const p = usePalette();
   const container = useRef<React.ComponentRef<typeof View>>(null);
   const origin = useRef({ x: 0, y: 0 });
   const [measured, setMeasured] = useState<Record<number, Rect>>({});
@@ -135,6 +137,8 @@ export function WordSelection({
         {pieces.map((piece, i) => (
           <Text
             key={i}
+            accessibilityRole={piece.glossary ? "link" : undefined}
+            accessibilityHint={piece.glossary ? "Toca para consultar el glosario" : undefined}
             suppressHighlighting
             onLongPress={() => onSelect(piece.start, piece.end)}
             onPress={() =>
@@ -143,9 +147,12 @@ export function WordSelection({
             style={[
               piece.style,
               {
+                color: active && piece.start < end && piece.end > start
+                  ? piece.style.writingDirection === "rtl" ? p.selectionArabic : p.selectionText
+                  : piece.style.color,
                 backgroundColor:
                   active && piece.start < end && piece.end > start
-                    ? "#A9C8E9"
+                    ? p.selection
                     : piece.style.backgroundColor,
               },
             ]}

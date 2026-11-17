@@ -1,3 +1,5 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { highlightInk, highlightArabic } from "../src/ui/tokens";
 import { ThemePicker } from "../src/ui/theme-picker";
 import { ContentsPanel } from "../src/ui/contents-panel";
 import { WordSelection, wordBounds } from "../src/ui/word-selection";
@@ -127,7 +129,7 @@ const BlockView = memo(function BlockView({
               t.span.t === "arabic"
                 ? "Amiri_400Regular"
                 : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-            color: t.span.t === "arabic" ? p.arabic : mark ? "#302920" : color,
+            color: mark ? (t.span.t === "arabic" ? highlightArabic : highlightInk) : t.span.t === "arabic" ? p.arabic : color,
             writingDirection:
               t.span.t === "arabic" ? ("rtl" as const) : ("auto" as const),
             backgroundColor: mark?.color,
@@ -223,7 +225,7 @@ const BlockView = memo(function BlockView({
           }}
           style={{ alignSelf: "flex-end", padding: 5 }}
         >
-          <Label style={{ color: muted, fontSize: 14 }}>✎</Label>
+          <Ionicons name="create-outline" size={18} color={muted} />
         </Pressable>
       )}
     </View>
@@ -651,7 +653,7 @@ function ReaderContent() {
           onPress={() => router.replace("/")}
           style={{ padding: 10 }}
         >
-          <Label style={{ fontSize: 26 }}>‹</Label>
+          <Ionicons name="chevron-back" size={24} color={p.text} />
         </Pressable>
         <Label
           numberOfLines={1}
@@ -664,7 +666,7 @@ function ReaderContent() {
           onPress={() => setToc(true)}
           style={{ padding: 10 }}
         >
-          <Label style={{ fontSize: 24 }}>☷</Label>
+          <Ionicons name="list-outline" size={24} color={p.text} />
         </Pressable>
       </View>
       <GestureDetector gesture={pinch}>
@@ -738,6 +740,7 @@ function ReaderContent() {
           borderColor: p.line,
           paddingHorizontal: 17,
           paddingTop: 11,
+          alignItems: "center",
           paddingBottom: Math.max(12, insets.bottom),
           flexDirection: "row",
           gap: 10,
@@ -746,11 +749,11 @@ function ReaderContent() {
       >
         <Label
           numberOfLines={1}
-          style={{ fontSize: 11, color: p.muted, flex: 1 }}
+          style={{ fontSize: 14, color: p.muted, flex: 1 }}
         >
-          {book.title} · {current?.section}
+          {current?.section}
         </Label>
-        <Label style={{ fontSize: 11, color: p.muted }}>
+        <Label style={{ fontSize: 14, color: p.muted }}>
           {es.page} {current?.block.page}
         </Label>
         <Pressable
@@ -759,9 +762,11 @@ function ReaderContent() {
             setThemes(true);
           }}
           accessibilityLabel={es.theme}
+          accessibilityRole="button"
+          style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
           onLongPress={() => changeSize(settings.fontSize + 1)}
         >
-          <Label style={{ fontSize: 13, color: p.muted }}>Aa</Label>
+          <Label style={{ fontSize: 19, color: p.text }}>Aa</Label>
         </Pressable>
       </View>
       {selection && !noteOpen && (
@@ -795,9 +800,9 @@ function ReaderContent() {
                     accessibilityLabel={es.colors[i]}
                     onPress={() => save("highlight", c)}
                     style={{
-                      width: 29,
-                      height: 29,
-                      borderRadius: 16,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
                       backgroundColor: c,
                       borderWidth: existing?.color === c ? 3 : 0,
                       borderColor: "#fff",
@@ -812,7 +817,9 @@ function ReaderContent() {
                   accessibilityLabel={es.bold}
                   onPress={() => save("highlight", undefined, !existing?.bold)}
                   style={{
-                    padding: 8,
+                    padding: 12,
+                    minHeight: 44,
+                    minWidth: 44,
                     backgroundColor: "#484D5D",
                     borderRadius: 6,
                   }}
@@ -825,7 +832,9 @@ function ReaderContent() {
                     save("highlight", undefined, undefined, !existing?.italic)
                   }
                   style={{
-                    padding: 8,
+                    padding: 12,
+                    minHeight: 44,
+                    minWidth: 44,
                     backgroundColor: "#484D5D",
                     borderRadius: 6,
                   }}
@@ -846,7 +855,7 @@ function ReaderContent() {
                       .forEach((m) => deleteMark(m.id));
                     setSelection(undefined);
                   }}
-                  style={{ padding: 8, marginLeft: "auto" }}
+                  style={{ padding: 12, minHeight: 44, marginLeft: "auto" }}
                 >
                   <Text style={{ color: "#F2B1A7", fontSize: 12 }}>
                     {es.remove}
@@ -856,17 +865,17 @@ function ReaderContent() {
             </>
           ) : (
             <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
+              style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}
             >
               {[
                 {
                   title: es.highlight,
-                  icon: "●",
+                  icon: "ellipse",
                   action: () => setColorMode(true),
                 },
                 {
                   title: es.note,
-                  icon: "✎",
+                  icon: "create-outline",
                   action: () => {
                     setNote("");
                     setNoteOpen(true);
@@ -874,7 +883,7 @@ function ReaderContent() {
                 },
                 {
                   title: es.copy,
-                  icon: "▣",
+                  icon: "copy-outline",
                   action: () => {
                     void Clipboard.setStringAsync(selectedText);
                     setNotice(es.copied);
@@ -883,17 +892,17 @@ function ReaderContent() {
                 },
                 {
                   title: es.share,
-                  icon: "↑",
+                  icon: "share-outline",
                   action: () => void Share.share({ message: selectedText }),
                 },
                 {
                   title: es.bookmark,
-                  icon: "◇",
+                  icon: "bookmark-outline",
                   action: () => save("bookmark"),
                 },
                 {
                   title: es.all,
-                  icon: "▦",
+                  icon: "grid-outline",
                   action: () =>
                     selectedBlock &&
                     setSelection({
@@ -907,20 +916,12 @@ function ReaderContent() {
                   key={a.title}
                   accessibilityLabel={a.title}
                   onPress={a.action}
-                  style={{ paddingVertical: 5, alignItems: "center", flex: 1 }}
+                  style={{ minHeight: 44, paddingVertical: 8, alignItems: "center", width: "33%" }}
                 >
+                  <Ionicons name={a.icon as React.ComponentProps<typeof Ionicons>["name"]} size={23} color={a.title === es.highlight ? "#F2D856" : "#fff"} style={{ marginBottom: 6 }} />
                   <Text
-                    style={{
-                      color: a.title === es.highlight ? "#F2D856" : "#fff",
-                      fontSize: 20,
-                      marginBottom: 6,
-                    }}
-                  >
-                    {a.icon}
-                  </Text>
-                  <Text
-                    maxFontSizeMultiplier={1.1}
-                    style={{ color: "#fff", fontSize: 9 }}
+                    maxFontSizeMultiplier={2}
+                    style={{ color: "#fff", fontSize: 13, textAlign: "center" }}
                   >
                     {a.title}
                   </Text>
@@ -930,9 +931,10 @@ function ReaderContent() {
           )}
           <Pressable
             onPress={() => setSelection(undefined)}
-            style={{ alignSelf: "center", paddingTop: 8 }}
+            accessibilityRole="button"
+            style={{ alignSelf: "center", padding: 12, minHeight: 44 }}
           >
-            <Text style={{ fontSize: 10, color: "#D5D8E0" }}>{es.close}</Text>
+            <Text style={{ fontSize: 15, color: "#D5D8E0" }}>{es.close}</Text>
           </Pressable>
         </View>
       )}
