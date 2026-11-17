@@ -143,7 +143,7 @@ def convert(pdf, overrides):
                 tail=current['spans'][-1]['text']
                 if re.match(r'^[a-záéíóúñü]',spans[0]['text']) and not tail.endswith(('al-', 'pre-', 'post-')):
                     current['spans'][-1]['text']=tail[:-1]
-                sep='' 
+                sep=''
             append(current['spans'],spans,sep)
             previous=e
             if note and text.endswith(']'):note=False;current=None
