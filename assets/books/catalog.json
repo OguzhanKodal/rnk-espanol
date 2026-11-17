@@ -1,0 +1,64 @@
+{
+  "books": [
+    {
+      "id": "ramadan-frugalidad-agradecimiento",
+      "title": "Ramadán, Frugalidad y Agradecimiento",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "el-coran",
+      "title": "El Corán",
+      "shelf": "coran",
+      "available": false
+    },
+    {
+      "id": "el-coran-significado",
+      "title": "El Corán – Significado en español",
+      "shelf": "coran",
+      "available": false
+    },
+    {
+      "id": "las-palabras",
+      "title": "Las Palabras",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "las-cartas",
+      "title": "Las Cartas",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "los-destellos",
+      "title": "Los Destellos",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "los-rayos",
+      "title": "Los Rayos",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "el-masnawi-nuriye",
+      "title": "El Masnawi Nuriye",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "el-fruto-de-la-fe",
+      "title": "El Fruto de la Fe",
+      "shelf": "breves",
+      "available": false
+    },
+    {
+      "id": "guia-para-la-juventud",
+      "title": "Guía para la Juventud",
+      "shelf": "breves",
+      "available": false
+    }
+  ]
+}
