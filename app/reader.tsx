@@ -28,7 +28,7 @@ import { Block, Span } from "../src/content/types";
 import { useStore, usePalette, Mark } from "../src/ui/store";
 import { Label, Sheet, Button } from "../src/ui/common";
 import { es } from "../src/i18n/es";
-type Row = { block: Block; section: string };
+type Row = { block: Block; section: string; absoluteIndex: number };
 type Selection = { blockId: string; start: number; end: number };
 const emptyMarks: Mark[] = [];
 const colors = [
@@ -264,6 +264,11 @@ const BlockView = memo(function BlockView({
   );
 });
 export default function Reader() {
+  const params = useLocalSearchParams();
+  // A changed route is a new reading destination, even when Router reuses the screen.
+  return <ReaderContent key={`${params.book}:${params.block}:${params.page}`} />;
+}
+function ReaderContent() {
   const params = useLocalSearchParams<{
       book?: string;
       block?: string;
@@ -278,18 +283,29 @@ export default function Reader() {
   const book = getBook(params.book ?? "muestra"),
     rows = useMemo<Row[]>(
       () =>
-        book.sections.flatMap((s) =>
-          s.blocks.map((block) => ({ block, section: s.title })),
-        ),
+        book.sections
+          .flatMap((s) => s.blocks.map((block) => ({ block, section: s.title })))
+          .map((row, absoluteIndex) => ({ ...row, absoluteIndex })),
       [book],
     );
+  // Resolve before the first FlatList mounts: no measurement or startup timer.
+  const [window, setWindow] = useState(() => {
+    const index = params.block
+      ? rows.findIndex((r) => r.block.id === params.block)
+      : params.page
+        ? rows.findIndex((r) => r.block.page >= Number(params.page))
+        : rows.findIndex((r) => r.block.id === progress[book.id]?.blockId);
+    return { start: Math.max(0, index), generation: 0 };
+  });
+  const windowRows = useMemo(() => rows.slice(window.start), [rows, window.start]);
+  const prependArmed = useRef(false);
   const [dragging, setDragging] = useState(false),
     [themes, setThemes] = useState(false),
     [pinching, setPinching] = useState(false),
     [previewScale, setPreviewScale] = useState(1),
     [chrome, setChrome] = useState(true),
     [pinchReport, setPinchReport] = useState(""),
-    [visible, setVisible] = useState(0),
+    [visible, setVisible] = useState(window.start),
     [selection, setSelection] = useState<Selection>(),
     [gloss, setGloss] = useState<GlossaryEntry>(),
     [toc, setToc] = useState(false),
@@ -298,74 +314,48 @@ export default function Reader() {
     [note, setNote] = useState(""),
     [notice, setNotice] = useState("");
   const touchKept = useRef(false);
-  const list = useRef<FlatList<Row>>(null),
-    anchor = useRef(0),
+  const anchor = useRef(window.start),
     size = useRef(settings.fontSize),
     currentSize = useRef(settings.fontSize),
     pinchAnchor = useRef(0),
     activePinch = useRef(false),
     pendingAnchor = useRef<number | null>(null),
-    layouts = useRef(new Map<number, number>()),
     lastScroll = useRef(0),
     touchStart = useRef({ y: 0, offset: 0 }),
     finalSize = useRef(settings.fontSize);
   useEffect(() => {
     currentSize.current = settings.fontSize;
   }, [settings.fontSize]);
-  const Cell = useCallback(
-    ({
-      index,
-      onLayout,
-      children,
-      ...cellProps
-    }: React.ComponentProps<
-      NonNullable<
-        React.ComponentProps<typeof FlatList<Row>>["CellRendererComponent"]
-      >
-    >) => (
-      <View
-        {...cellProps}
-        onLayout={(e) => {
-          layouts.current.set(index, e.nativeEvent.layout.y);
-          onLayout?.(e);
-        }}
-      >
-        {children}
-      </View>
-    ),
-    [],
-  );
-  const restored = useRef("");
-  const initialProgress = useRef(progress);
   const scrollTo = useCallback(
     (index: number) => {
       if (activePinch.current) return;
       const i = Math.max(0, Math.min(rows.length - 1, index));
       anchor.current = i;
-      list.current?.scrollToIndex({
-        index: i,
-        animated: false,
-        viewPosition: 0,
-      });
-      setTimeout(() => setChrome(true), 600);
+      pendingAnchor.current = null;
+      prependArmed.current = false;
+      lastScroll.current = 0;
+      setVisible(i);
+      setSelection(undefined);
+      setChrome(true);
+      // Remount only for explicit jumps, never for prepending. This resets native
+      // offsets and VirtualizedList measurement caches together, before painting.
+      setWindow((w) => ({ start: i, generation: w.generation + 1 }));
     },
     [rows.length],
   );
-  useEffect(() => {
-    const key = book.id + ":" + (params.block ?? params.page ?? "");
-    if (restored.current === key) return;
-    restored.current = key;
-    let index = params.block
-      ? rows.findIndex((r) => r.block.id === params.block)
-      : params.page
-        ? rows.findIndex((r) => r.block.page >= Number(params.page))
-        : rows.findIndex(
-            (r) => r.block.id === initialProgress.current[book.id]?.blockId,
-          );
-    if (index < 0) index = 0;
-    const t = setTimeout(() => scrollTo(index), 400);
-    return () => clearTimeout(t);
-  }, [book.id, params.block, params.page, rows, scrollTo]);
+  const prepend = useCallback(() => {
+    if (
+      !prependArmed.current ||
+      activePinch.current ||
+      pendingAnchor.current !== null
+    ) return;
+    // Ignore mount/layout callbacks: only a user drag may expand the window.
+    // Keep the list key and block keys stable so native position maintenance works.
+    prependArmed.current = false;
+    setWindow((w) =>
+      w.start === 0 ? w : { ...w, start: Math.max(0, w.start - 40) },
+    );
+  }, []);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!__DEV__ || !params.dev) return;
@@ -446,8 +436,8 @@ export default function Reader() {
         !activePinch.current &&
         pendingAnchor.current === null
       ) {
-        anchor.current = item.index;
-        setVisible(item.index);
+        anchor.current = item.item.absoluteIndex;
+        setVisible(item.item.absoluteIndex);
         saveProgress(book.id, {
           blockId: item.item.block.id,
           page: item.item.block.page,
@@ -457,24 +447,29 @@ export default function Reader() {
     [book.id, saveProgress],
   );
   const restoreResize = useCallback(() => {
-    const index = pendingAnchor.current;
-    if (index === null) return;
-    const y = layouts.current.get(index);
-    if (y === undefined) return;
+    if (pendingAnchor.current === null) return;
     pendingAnchor.current = null;
-    anchor.current = index;
-    list.current?.scrollToOffset({ offset: y, animated: false });
-    setVisible(index);
-    setPinchReport(rows[index]?.block.id ?? "");
+    setPinchReport(rows[anchor.current]?.block.id ?? "");
   }, [rows]);
+  const reflowAt = useCallback(
+    (index: number, fontSize: number) => {
+      pendingAnchor.current = index;
+      anchor.current = index;
+      prependArmed.current = false;
+      lastScroll.current = 0;
+      setVisible(index);
+      setWindow((w) => ({ start: index, generation: w.generation + 1 }));
+      update({ fontSize });
+    },
+    [update],
+  );
   const changeSize = useCallback(
     (value: number) => {
       const next = Math.round(Math.max(14, Math.min(34, value)));
       if (next === currentSize.current) return;
-      pendingAnchor.current = anchor.current;
-      update({ fontSize: next });
+      reflowAt(anchor.current, next);
     },
-    [update],
+    [reflowAt],
   );
   const pinchBegin = useCallback(() => {
     activePinch.current = true;
@@ -495,10 +490,9 @@ export default function Reader() {
     setPinching(false);
     setPreviewScale(1);
     if (finalSize.current !== currentSize.current) {
-      pendingAnchor.current = pinchAnchor.current;
-      update({ fontSize: finalSize.current });
+      reflowAt(pinchAnchor.current, finalSize.current);
     }
-  }, [update]);
+  }, [reflowAt]);
   useEffect(() => {
     if (!__DEV__ || params.dev !== "pinch") return;
     const timers = [23, 29, 18, 32, 23].map((value, i) =>
@@ -672,7 +666,13 @@ export default function Reader() {
       </View>
       <GestureDetector gesture={pinch}>
         <FlatList
-          ref={list}
+          key={window.generation}
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          onStartReached={prepend}
+          onStartReachedThreshold={2}
+          onScrollBeginDrag={() => {
+            prependArmed.current = true;
+          }}
           scrollEnabled={!pinching && !dragging}
           onContentSizeChange={() => {
             requestAnimationFrame(restoreResize);
@@ -709,12 +709,12 @@ export default function Reader() {
               Math.abs(y - lastScroll.current) > 12
             )
               setChrome(y < lastScroll.current);
+            if (y < lastScroll.current && y < viewportHeight * 2) prepend();
             lastScroll.current = y;
           }}
           scrollEventThrottle={32}
           style={{ transform: [{ scale: previewScale }] }}
-          data={rows}
-          CellRendererComponent={Cell}
+          data={windowRows}
           keyExtractor={(r) => r.block.id}
           contentContainerStyle={{
             paddingHorizontal: 25,
@@ -722,23 +722,6 @@ export default function Reader() {
           }}
           initialNumToRender={10}
           windowSize={7}
-          onScrollToIndexFailed={(info) => {
-            if (activePinch.current || pendingAnchor.current !== null) return;
-            list.current?.scrollToOffset({
-              offset: info.averageItemLength * info.index,
-              animated: false,
-            });
-            setTimeout(
-              () =>
-                !activePinch.current &&
-                pendingAnchor.current === null &&
-                list.current?.scrollToIndex({
-                  index: info.index,
-                  animated: false,
-                }),
-              250,
-            );
-          }}
           onViewableItemsChanged={onViewable}
           viewabilityConfig={{ itemVisiblePercentThreshold: 12 }}
           extraData={{ selection, marks, settings }}

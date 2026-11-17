@@ -223,3 +223,61 @@ Development-only routes for reproducibility (`exp://127.0.0.1:8081/--/` prefix):
 Screenshots: 01-themes.png; 02-home-paper.png; 03-reader-paper.png;
 04-home-dark.png; 05-reader-dark.png; 06-home-galaxy.png; 07-reader-galaxy.png;
 08-index-real.png; 09-index-bookmarks.png; 10-handles.png; 11-index-fixture.png.
+
+
+## V4 · Immediate reader restoration (17 November 2026)
+
+- Confirmed the old delay: a 400 ms startup timer plus repeated unmeasured
+  `scrollToIndex` / estimated-offset / 250 ms retries traversed virtualized batches.
+  Reader now resolves block → page → saved progress before the first list mount,
+  renders `rows.slice(window.start)`, and opens at native offset zero. Explicit
+  Índice/bookmark jumps replace the window and remount only the FlatList to clear
+  both native offsets and stale virtualization measurements. Route destination
+  changes also reset reader state. There are no index-scroll retries or startup waits.
+- Each row carries its absolute index once, before slicing. Viewability maps through
+  that row rather than adding a possibly stale window offset; progress, current page,
+  contents highlighting and pinch anchors continue using the full book. Selection,
+  glossary and annotations retain stable block IDs and UTF-16 offsets.
+- Backward user drags near the window start prepend up to 40 preceding rows.
+  `maintainVisibleContentPosition={{ minIndexForVisible: 0 }}` preserves the native
+  visible block; the list and block keys remain unchanged during prepends. Initial
+  onStartReached/layout notifications cannot prepend automatically. An onScroll
+  threshold also handles an initial start notification consumed before user touch.
+  Previously loaded content stays available, so successive drags can reach row zero.
+- Pinch still freezes viewability and disables scrolling from onStart; preview is
+  transform-only. Finalize batches one size update with a fresh window beginning
+  at the captured absolute block. The next content layout releases the restoration
+  guard. This supersedes V2's measured-cell offset correction and avoids stale cell
+  coordinates or measurement traversal after text reflow. Font controls use the
+  same restoration path. No scrolling occurs during gesture updates.
+- Limits: restoration aligns a block, not an exact pixel/word within a paragraph.
+  A deliberate jump/reflow remounts the list; backward prepends do not. Up to 40 rows
+  are added per user drag; another drag can add another chunk. FlatList still
+  virtualizes the suffix (windowSize 7); slice length is not a rendered-cell count.
+  Cold Expo Go/bundle/font/SQLite startup precedes reader mount and is outside the
+  measured interval. Android and physical two-finger touch feel remain untested.
+
+Verification on booted iPhone 16 Pro / iOS 18.5, using the existing Metro on 8081:
+
+- Temporary development-only mount → first visible target timing at page 55
+  (`s3-b13`): **6,161 ms before**, **168 ms after** via `page=55`; reopening with
+  only `book` restored persisted page 55 in **182 ms**. Same simulator, book and
+  settings; these are single development runs, not a physical-device benchmark.
+  Timing overlay was removed after captures; no timing logs remain in source.
+- Terminated Expo Go before each deep-link launch. First opened `reader?book=ramadan-frugalidad-agradecimiento&page=55`,
+  allowed progress to persist, then reopened with only `book` to test saved progress.
+  Add `__expo_disable_fab=1` to keep Expo Go's floating gear away from Índice.
+- Actual simulator backward drag exposed the immediately preceding paragraph with
+  page 55 still in view. Actual Índice search for “LA QUINTA FRASE” and row press
+  jumped from page 5 to `s3-b185` on page 82. The same callback serves contents marks;
+  external Marcadores uses the block route, resolved before mounting.
+- Existing `dev=pinch&block=s3-b185` invoked begin/update/finalize at
+  23 → 29 → 18 → 32 → 23 px; the page-82 heading stayed at the top. This exercises
+  the production callbacks without injecting physical two-finger touches.
+- TypeScript, Expo lint, all three tests-ui suites (reader, selection, locations),
+  and the read-only persisted SQLite simulator check passed.
+
+Visually inspected evidence in `docs/ekran/v4/`: `00-timing-before.png`,
+`00-timing-after-page.png`, `00-timing-after-saved.png`, `01-saved-page-55.png`,
+`02-index-page-82.png`, `03-scroll-back.png`, `04-pinch-before-page-82.png`,
+`05-pinch-29-page-82.png`, `06-pinch-final-page-82.png`.
