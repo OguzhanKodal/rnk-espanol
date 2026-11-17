@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Risale-i Nur Español",
+    "name": "Risale-i Nur Espa\u00f1ol",
     "slug": "risale-nur-espanol",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -25,7 +25,14 @@
       "expo-router",
       "expo-sqlite",
       "expo-font",
-      "expo-status-bar"
-    ]
+      "expo-status-bar",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite que Risale-i Nur use tu ubicaci\u00f3n para calcular los horarios de oraci\u00f3n."
+        }
+      ]
+    ],
+    "scheme": "risalenur"
   }
 }

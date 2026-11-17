@@ -4,16 +4,69 @@
   "author": "Bediüzzaman Said Nursî",
   "credits": [],
   "sections": [
-    { "id": "s1", "title": "Reflexión", "blocks": [
-      { "id": "s1-b1", "type": "heading", "level": 1, "text": "Reflexión", "page": 1 },
-      { "id": "s1-b2", "type": "paragraph", "page": 1, "spans": [ { "t": "text", "text": "Una palabra de esperanza: " }, { "t": "arabic", "text": "مِنْ حَيْثُ لَا يَحْتَسِبُ" }, { "t": "text", "text": ". La " }, { "t": "bold", "text": "gratitud" }, { "t": "text", "text": " ilumina el camino de la " }, { "t": "italic", "text": "fe" }, { "t": "text", "text": "." } ] },
-      { "id": "s1-b3", "type": "arabic", "text": "لَٓا اِلٰهَ اِلَّٓا اَنْتَ", "page": 1 },
-      { "id": "s1-b4", "type": "note", "page": 1, "spans": [{ "t": "text", "text": "[Esta es una nota de ejemplo.]" }] },
-      { "id": "s1-b5", "type": "pageBreak", "page": 2 }
-    ] },
-    { "id": "s2", "title": "Gratitud", "blocks": [
-      { "id": "s2-b1", "type": "heading", "level": 1, "text": "Gratitud", "page": 2 },
-      { "id": "s2-b2", "type": "paragraph", "page": 2, "spans": [{ "t": "text", "text": "La gratitud nos invita a contemplar los dones de cada día." }] }
-    ] }
+    {
+      "id": "s1",
+      "title": "Reflexión",
+      "blocks": [
+        {
+          "id": "s1-b1",
+          "type": "heading",
+          "level": 1,
+          "text": "Reflexión",
+          "page": 1
+        },
+        {
+          "id": "s1-b2",
+          "type": "paragraph",
+          "page": 1,
+          "spans": [
+            { "t": "text", "text": "Una palabra de esperanza: " },
+            { "t": "arabic", "text": "مِنْ حَيْثُ لَا يَحْتَسِبُ" },
+            { "t": "text", "text": ". La " },
+            { "t": "bold", "text": "gratitud" },
+            { "t": "text", "text": " ilumina el camino de la " },
+            { "t": "italic", "text": "fe" },
+            { "t": "text", "text": "." }
+          ]
+        },
+        {
+          "id": "s1-b3",
+          "type": "arabic",
+          "text": "لَٓا اِلٰهَ اِلَّٓا اَنْتَ",
+          "page": 1
+        },
+        {
+          "id": "s1-b4",
+          "type": "note",
+          "page": 1,
+          "spans": [{ "t": "text", "text": "[Esta es una nota de ejemplo.]" }]
+        },
+        { "id": "s1-b5", "type": "pageBreak", "page": 2 }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Gratitud",
+      "blocks": [
+        {
+          "id": "s2-b1",
+          "type": "heading",
+          "level": 1,
+          "text": "Gratitud",
+          "page": 2
+        },
+        {
+          "id": "s2-b2",
+          "type": "paragraph",
+          "page": 2,
+          "spans": [
+            {
+              "t": "text",
+              "text": "La gratitud nos invita a contemplar los dones de cada día."
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

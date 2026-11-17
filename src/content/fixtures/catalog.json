@@ -1,0 +1,45 @@
+{
+  "books": [
+    {
+      "id": "coran",
+      "title": "El Sagrado Corán",
+      "shelf": "coran",
+      "available": false,
+      "coverColor": "#234e43"
+    },
+    {
+      "id": "significado",
+      "title": "Significado en español",
+      "shelf": "coran",
+      "available": false,
+      "coverColor": "#57402e"
+    },
+    {
+      "id": "palabras",
+      "title": "Las Palabras",
+      "shelf": "coleccion",
+      "available": false
+    },
+    {
+      "id": "cartas",
+      "title": "Las Cartas",
+      "shelf": "coleccion",
+      "available": false,
+      "coverColor": "#314858"
+    },
+    {
+      "id": "destellos",
+      "title": "Los Destellos",
+      "shelf": "coleccion",
+      "available": false,
+      "coverColor": "#3e5142"
+    },
+    {
+      "id": "muestra",
+      "title": "Una muestra de lectura",
+      "shelf": "breves",
+      "available": true,
+      "coverColor": "#722f36"
+    }
+  ]
+}
