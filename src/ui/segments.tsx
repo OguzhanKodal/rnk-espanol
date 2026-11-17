@@ -30,6 +30,8 @@ export function Segments({
           onPress={() => onChange(i)}
           style={{
             flex: 1,
+            minHeight: 44,
+            justifyContent: "center",
             paddingVertical: 10,
             alignItems: "center",
             borderRadius: 9,
@@ -37,7 +39,7 @@ export function Segments({
           }}
         >
           <Label
-            style={{ fontSize: 13, fontWeight: i === selected ? "600" : "400" }}
+            style={{ fontSize: 14, textAlign: "center", fontWeight: i === selected ? "600" : "400" }}
           >
             {value}
           </Label>

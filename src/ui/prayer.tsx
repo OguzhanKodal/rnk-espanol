@@ -142,9 +142,8 @@ export function PrayerCard() {
         borderColor: p.line,
       }}
     >
-      <Label style={[styles.eyebrow, { color: p.muted }]}>
-        {es.next} · {data.city}
-      </Label>
+      <Label style={{ fontSize: 22, fontWeight: "600" }}>{es.next}</Label>
+      <Label style={{ fontSize: 16, color: p.muted, marginTop: 8 }}>{data.city}</Label>
       <View
         style={[
           styles.row,
@@ -168,7 +167,7 @@ export function PrayerCard() {
         {data.values.map((d, i) =>
           i === 1 ? null : (
             <View key={i}>
-              <Label style={{ fontSize: 11, color: p.muted }}>
+              <Label style={{ fontSize: 14, color: p.muted }}>
                 {es.prayerNames[i]}
               </Label>
               <Label style={{ fontSize: 13, marginTop: 5 }}>

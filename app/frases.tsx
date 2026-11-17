@@ -59,7 +59,7 @@ export default function Quotes() {
             </Label>
             <Label
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 color: p.muted,
                 marginTop: 20,
                 marginBottom: 18,

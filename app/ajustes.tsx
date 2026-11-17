@@ -17,12 +17,12 @@ export default function Settings() {
         { margin: 18, padding: 20, borderRadius: 22, backgroundColor: p.paper },
       ]}
     >
-      <Label style={[styles.eyebrow, { color: p.muted, marginBottom: 18 }]}>
+      <Label style={{ fontSize: 24, fontWeight: "600", marginBottom: 24 }}>
         {es.reading}
       </Label>
       <Label style={{ marginBottom: 14 }}>{es.theme}</Label>
       <Button
-        title={es.themes[settings.theme] + "  ›"}
+        title={es.themes[settings.theme]}
         onPress={() => setThemes(true)}
       />
       <ThemePicker visible={themes} onClose={() => setThemes(false)} />
@@ -45,7 +45,7 @@ export default function Settings() {
           }
         />
       </View>
-      <Label style={{ fontSize: 13, color: p.muted, marginTop: 12 }}>
+      <Label style={{ fontSize: 14, color: p.muted, marginTop: 12 }}>
         {es.fontHint}
       </Label>
       <View style={[styles.divider, { backgroundColor: p.line }]} />

@@ -80,7 +80,7 @@ export function ThemePicker({
                 backgroundColor: p.line,
               }}
             >
-              <Label style={{ fontSize: 29 }}>×</Label>
+              <Ionicons name="close" size={24} color={p.text} />
             </Pressable>
           </View>
           <Label
@@ -128,17 +128,7 @@ export function ThemePicker({
                   <Text style={{ color: t.accent }}>{es.sampleEnd}</Text>.
                 </Text>
                 {settings.theme === i && (
-                  <Text
-                    style={{
-                      position: "absolute",
-                      right: 18,
-                      top: 24,
-                      fontSize: 24,
-                      color: t.arabic,
-                    }}
-                  >
-                    ✓
-                  </Text>
+                  <Ionicons name="checkmark-circle" size={24} color={t.accent} style={{ position: "absolute", right: 18, top: 24 }} />
                 )}
               </Pressable>
             ))}

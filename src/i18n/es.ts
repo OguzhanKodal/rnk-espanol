@@ -14,7 +14,7 @@ export const es = {
   fonts: ["EB Garamond", "Libre Baskerville"],
   brand: "Risale-i Nur",
   fromCollection: "Colección Risale-i Nur",
-  language: "ESPAÑOL",
+  language: "Español",
   app: "Risale-i Nur Español",
   library: "Biblioteca",
   glossary: "Glosario",

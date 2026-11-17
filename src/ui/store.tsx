@@ -192,7 +192,7 @@ export function Store({ children }: { children: React.ReactNode }) {
 }
 export const useStore = () => useContext(Context);
 // bg is also the reader page; paper is the raised chrome/card surface.
-export const palettes = [
+const basePalettes = [
   {
     bg: "#EFEFEF",
     paper: "#FAFAFA",
@@ -264,5 +264,6 @@ export const palettes = [
     accent: "#F39E8D",
   },
 ];
+export const palettes = basePalettes.map((p, i) => ({ ...p, dark: i >= 3, selection: i >= 3 ? "#344B65" : "#C9DDF0", selectionText: i >= 3 ? "#FFFFFF" : "#172B40", selectionArabic: i >= 3 ? "#FFD0CE" : "#701923" }));
 export const usePalette = () =>
   useContext(PaletteContext) ?? palettes[2];

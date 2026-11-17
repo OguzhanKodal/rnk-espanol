@@ -1,3 +1,4 @@
+import { StatusBar } from "expo-status-bar";
 import { router, Href } from "expo-router";
 import { getLinkingURL } from "expo-linking";
 import React from "react";
@@ -47,6 +48,8 @@ function Navigation() {
   }, [ready]);
   if (!ready) return <ActivityIndicator style={{ flex: 1 }} />;
   return (
+    <>
+    <StatusBar style={p.dark ? "light" : "dark"} />
     <Drawer
       drawerContent={(props) => (
         <DrawerContentScrollView {...props}>
@@ -203,6 +206,7 @@ function Navigation() {
         }}
       />
     </Drawer>
+    </>
   );
 }
 export default function Layout() {

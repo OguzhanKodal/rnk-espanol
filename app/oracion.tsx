@@ -70,7 +70,7 @@ export default function Prayer() {
       >
         <Ionicons name="location-outline" color={p.accent} size={23} />
         <View style={{ flex: 1 }}>
-          <Label style={{ fontSize: 13, color: p.muted }}>Ubicación</Label>
+          <Label style={{ fontSize: 14, color: p.muted }}>Ubicación</Label>
           <Label style={{ fontWeight: "600", marginTop: 4 }}>{data.city}</Label>
         </View>
         <Ionicons name="chevron-forward" size={18} color={p.muted} />
@@ -114,7 +114,7 @@ export default function Prayer() {
           </View>
         ))}
       </View>
-      <Label style={{ color: p.muted, fontSize: 12, marginVertical: 16 }}>
+      <Label style={{ color: p.muted, fontSize: 14, marginVertical: 16 }}>
         {es.calculated}
       </Label>
       <Label

@@ -1,4 +1,6 @@
 import React from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { space, radius, type, target } from "./tokens";
 import {
   Text,
   TextProps,
@@ -17,9 +19,9 @@ export function Label({ style, ...props }: TextProps) {
   const p = usePalette();
   return (
     <Text
-      maxFontSizeMultiplier={1.5}
+      maxFontSizeMultiplier={2}
       {...props}
-      style={[{ color: p.text, fontSize: 16 }, style]}
+      style={[{ color: p.text, fontSize: type.body }, style]}
     />
   );
 }
@@ -40,7 +42,8 @@ export function Button({
       style={({ pressed }) => ({
         paddingHorizontal: 15,
         paddingVertical: 12,
-        borderRadius: 12,
+        minHeight: target,
+        borderRadius: radius.control,
         backgroundColor: active ? p.accent : p.paper,
         borderWidth: 1,
         borderColor: p.line,
@@ -95,8 +98,8 @@ export function Sheet({
         <View
           style={{
             backgroundColor: p.paper,
-            borderTopLeftRadius: 25,
-            borderTopRightRadius: 25,
+            borderTopLeftRadius: radius.sheet,
+            borderTopRightRadius: radius.sheet,
             padding: 24,
             paddingBottom: Math.max(24, insets.bottom),
             maxHeight: "78%",
@@ -123,7 +126,7 @@ export function Sheet({
             <Label style={{ fontSize: 23, fontWeight: "600", flex: 1 }}>
               {title}
             </Label>
-            <Button title="×" onPress={onClose} />
+            <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" onPress={onClose} style={{ minWidth: target, minHeight: target, alignItems: "center", justifyContent: "center", backgroundColor: p.line, borderRadius: radius.control }}><Ionicons name="close" size={24} color={p.text} /></Pressable>
           </View>
           <ScrollView keyboardShouldPersistTaps="handled">
             {children}
@@ -134,10 +137,9 @@ export function Sheet({
   );
 }
 export const styles = StyleSheet.create({
-  pad: { padding: 22, paddingBottom: 60 },
+  pad: { padding: space.xl, paddingBottom: 60 },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
-  card: { padding: 20, borderRadius: 18, marginBottom: 12 },
-  eyebrow: { fontSize: 15, fontWeight: "500" },
+  card: { padding: space.xl, borderRadius: radius.card, marginBottom: space.lg },
   title: {
     fontSize: 30,
     fontWeight: "700",
