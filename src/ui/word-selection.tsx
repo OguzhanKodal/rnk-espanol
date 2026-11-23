@@ -15,7 +15,6 @@ export type WordPiece = {
   start: number;
   end: number;
   style: TextStyle;
-  glossary?: unknown;
 };
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -32,7 +31,6 @@ export function WordSelection({
   onDrag,
   onWord,
   onSelect,
-  onGlossary,
   testMove,
 }: {
   pieces: WordPiece[];
@@ -45,7 +43,6 @@ export function WordSelection({
   onDrag: (active: boolean) => void;
   onWord: (start: number, end: number) => void;
   onSelect: (start: number, end: number) => void;
-  onGlossary: (index: number) => void;
   testMove?: boolean;
 }) {
   const p = usePalette();
@@ -137,15 +134,10 @@ export function WordSelection({
         {pieces.map((piece, i) => (
           <Text
             key={i}
-            accessibilityRole={piece.glossary ? "link" : undefined}
-            accessibilityHint={
-              piece.glossary ? "Toca para consultar el glosario" : undefined
-            }
+            accessibilityRole="text"
             suppressHighlighting
             onLongPress={() => onSelect(piece.start, piece.end)}
-            onPress={() =>
-              piece.glossary ? onGlossary(i) : onWord(piece.start, piece.end)
-            }
+            onPress={() => onWord(piece.start, piece.end)}
             style={[
               piece.style,
               {

@@ -20,7 +20,6 @@ const shots = [
   ["02-prayer-card", "?dev=bottom"],
   ["03-drawer", "?dev=drawer"],
   ["04-reader", "reader?book=muestra&dev=paper"],
-  ["05-dictionary", "reader?book=muestra&dev=glossary"],
   ["06-selection", "reader?book=muestra&dev=selection"],
   ["07-themes", "reader?book=muestra&dev=themes"],
   [
@@ -29,7 +28,6 @@ const shots = [
   ],
   ["09-bookmarks", "marcadores"],
   ["10-prayer", "oracion"],
-  ["11-glossary", "glosario"],
   ["12-quotes", "frases"],
   ["13-settings", "ajustes"],
   ["14-about", "acerca"],

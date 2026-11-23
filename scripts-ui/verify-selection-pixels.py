@@ -64,4 +64,3 @@ for name, before, after in PAIRS:
 assert all(r['changed_pixels'] == 0 and r['glyph_core_changed_pixels'] == 0 for r in results), 'Text moved or pixels changed outside selection'
 # Term ends before comma and space; retain full-resolution crop for inspection.
 im = Image.open(ROOT / '05-natural-wrapping-oscuro.png')
-im.crop((58, 1088, 1126, 1204)).resize((2136, 232)).save(ROOT / '11-glossary-closeup.png')

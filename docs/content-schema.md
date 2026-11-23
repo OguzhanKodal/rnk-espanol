@@ -47,3 +47,5 @@ Rules
 - Block ids are stable across reruns of the converter (`<sectionId>-b<index>`), because highlights/notes are anchored to `blockId + start/end character offset` over the concatenated span text of that block.
 - `page` = the printed page number of the source PDF where the block starts.
 - `unresolved: true` arabic has `text: ""` and the app shows a small grey "[árabe]" marker.
+
+Interaction: tap opens no word popup. Long-press selects UTF-16 text ranges for annotation, copy and share. Only catalog, requested books and quotes are bundled; no dictionary dataset is required.

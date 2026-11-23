@@ -2,5 +2,4 @@
 export const catalogData = require('../../assets/books/catalog.json');
 export const bookLoaders: Record<string, () => unknown> = {"ramadan-frugalidad-agradecimiento": () => require('../../assets/books/ramadan-frugalidad-agradecimiento.json'),
 muestra: () => require('./fixtures/sample-book.json')};
-export const glossaryData = require('../../assets/glossary.json');
 export const frasesData = require('../../assets/frases.json');

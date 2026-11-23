@@ -50,7 +50,6 @@ const route = async (name, path) => {
   shot(name);
 };
 await route("04-reader", "reader?book=muestra&block=s1-b2&dev=paper");
-await route("05-dictionary", "reader?book=muestra&block=s1-b2&dev=glossary");
 await route("06-selection", "reader?book=muestra&block=s1-b2&dev=selection");
 await route(
   "27-fixture-selected",

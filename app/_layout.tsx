@@ -97,11 +97,6 @@ function Navigation() {
                     title: es.quotes,
                     icon: "chatbox-ellipses-outline",
                   },
-                  {
-                    name: "glosario",
-                    title: es.glossary,
-                    icon: "text-outline",
-                  },
                 ],
               },
               {
@@ -200,7 +195,6 @@ function Navigation() {
         }}
       >
         <Drawer.Screen name="index" options={{ title: es.library }} />
-        <Drawer.Screen name="glosario" options={{ title: es.glossary }} />
         <Drawer.Screen name="frases" options={{ title: es.quotes }} />
         <Drawer.Screen name="marcadores" options={{ title: es.marks }} />
         <Drawer.Screen

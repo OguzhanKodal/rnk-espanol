@@ -1,8 +1,8 @@
 # Risale-i Nur Español
 
-Aplicación de lectura Expo/React Native para libros de Risale-i Nur en español, con diccionario, subrayados, notas y horarios de oración; para iOS y Android.
+Aplicación de lectura Expo/React Native para libros de Risale-i Nur en español, con subrayados, notas y horarios de oración; para iOS y Android.
 
-İspanyolca Risale-i Nur kitapları için sözlük, vurgulama, notlar ve namaz vakitleri sunan Expo/React Native okuma uygulaması; iOS ve Android için.
+İspanyolca Risale-i Nur kitapları için vurgulama, notlar ve namaz vakitleri sunan Expo/React Native okuma uygulaması; iOS ve Android için.
 
 ## Ejecutar / Çalıştırma
 

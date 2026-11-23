@@ -8,7 +8,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -26,7 +25,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Clipboard from "expo-clipboard";
-import { getBook, glossaryRanges, GlossaryEntry } from "../src/content/load";
+import { getBook } from "../src/content/load";
 import { Block, Span } from "../src/content/types";
 import { useStore, usePalette, Mark } from "../src/ui/store";
 import { Label, Sheet, Button } from "../src/ui/common";
@@ -58,7 +57,6 @@ const BlockView = memo(function BlockView({
   marks,
   onWord,
   onSelect,
-  onGlossary,
   onMove,
   onDrag,
   testMove,
@@ -72,15 +70,12 @@ const BlockView = memo(function BlockView({
   marks: Mark[];
   onWord: (id: string, start: number, end: number) => void;
   onSelect: (id: string, start: number, end: number) => void;
-  onGlossary: (g: GlossaryEntry) => void;
   onMove: (edge: "start" | "end", start: number, end: number) => void;
   onDrag: (active: boolean) => void;
   testMove?: boolean;
 }) {
   const p = usePalette();
-  const b = row.block,
-    text = blockText(b),
-    ranges = useMemo(() => glossaryRanges(text), [text]);
+  const b = row.block;
   const pieces = useMemo(() => {
     if (!("spans" in b)) return [];
     let offset = 0;
@@ -99,54 +94,38 @@ const BlockView = memo(function BlockView({
         offset += part.length;
       }
     }
-    // Split decoration boundaries once, independently of selection state. Spaces and
-    // punctuation never inherit a glossary term's underline.
-    return tokens.flatMap((t) => {
-      const cuts = [
-        ...new Set([
-          t.start,
-          t.end,
-          ...ranges.flatMap((g) =>
-            [g.start, g.end].filter((n) => n > t.start && n < t.end),
-          ),
-        ]),
-      ].sort((a, b) => a - b);
-      return cuts.slice(0, -1).map((start, i) => {
-        const end = cuts[i + 1];
-        const g = ranges.find((r) => start >= r.start && end <= r.end);
-        const mark = marks
-          .filter(
-            (m) => m.kind === "highlight" && m.start < end && m.end > start,
-          )
-          .at(-1);
-        return {
-          text: text.slice(start, end),
-          start,
-          end,
-          glossary: g,
-          style: {
-            ...(t.span.t === "arabic" ? { fontSize: fontSize * 1.15 } : {}),
-            fontFamily:
-              t.span.t === "arabic"
-                ? "Amiri_400Regular"
-                : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
-            color: mark
-              ? t.span.t === "arabic"
-                ? highlightArabic
-                : highlightInk
-              : t.span.t === "arabic"
-                ? p.arabic
-                : color,
-            writingDirection:
-              t.span.t === "arabic" ? ("rtl" as const) : ("auto" as const),
-            backgroundColor: mark?.color,
-            textDecorationLine: g ? ("underline" as const) : ("none" as const),
-            textDecorationColor: p.accent,
-          },
-        };
-      });
+    // Visible token boundaries and metrics never depend on selection state.
+    return tokens.map((t) => {
+      const { start, end } = t;
+      const mark = marks
+        .filter(
+          (m) => m.kind === "highlight" && m.start < end && m.end > start,
+        )
+        .at(-1);
+      return {
+        text: t.text,
+        start,
+        end,
+        style: {
+          ...(t.span.t === "arabic" ? { fontSize: fontSize * 1.15 } : {}),
+          fontFamily:
+            t.span.t === "arabic"
+              ? "Amiri_400Regular"
+              : `${font.startsWith("Libre") ? "LibreBaskerville" : "EBGaramond"}_${t.span.t === "bold" || mark?.bold ? "700Bold" : "400Regular"}${t.span.t === "italic" || mark?.italic || b.type === "note" ? "_Italic" : ""}`,
+          color: mark
+            ? t.span.t === "arabic"
+              ? highlightArabic
+              : highlightInk
+            : t.span.t === "arabic"
+              ? p.arabic
+              : color,
+          writingDirection:
+            t.span.t === "arabic" ? ("rtl" as const) : ("auto" as const),
+          backgroundColor: mark?.color,
+        },
+      };
     });
-  }, [b, color, font, fontSize, marks, p.accent, p.arabic, ranges, text]);
+  }, [b, color, font, fontSize, marks, p]);
   if (b.type === "pageBreak")
     return (
       <View
@@ -218,10 +197,6 @@ const BlockView = memo(function BlockView({
         onDrag={onDrag}
         onWord={(start, end) => onWord(b.id, start, end)}
         onSelect={(start, end) => onSelect(b.id, start, end)}
-        onGlossary={(i) => {
-          const g = pieces[i].glossary;
-          if (g) onGlossary(g.entry);
-        }}
         testMove={testMove}
       />
       {marks.some((m) => m.kind === "note") && (
@@ -296,7 +271,6 @@ function ReaderContent() {
     [pinchReport, setPinchReport] = useState(""),
     [visible, setVisible] = useState(window.start),
     [selection, setSelection] = useState<Selection>(),
-    [gloss, setGloss] = useState<GlossaryEntry>(),
     [toc, setToc] = useState(false),
     [colorMode, setColorMode] = useState(false),
     [noteOpen, setNoteOpen] = useState(false),
@@ -389,17 +363,8 @@ function ReaderContent() {
             page: row.block.page,
           });
       }
-      if (["arabic", "selection", "colors", "glossary"].includes(params.dev))
+      if (["arabic", "selection", "colors"].includes(params.dev))
         update({ theme: 2 });
-      if (params.dev === "glossary")
-        setGloss(
-          glossaryRanges(row ? blockText(row.block) : "gratitud")[0]?.entry ?? {
-            term: "gratitud",
-            variants: [],
-            definition: "Reconocimiento de los dones recibidos.",
-            verified: false,
-          },
-        );
       if (
         row &&
         [
@@ -578,17 +543,6 @@ function ReaderContent() {
     touchKept.current = true;
     setDragging(active);
   }, []);
-  const selectionRef = useRef(selection);
-  useLayoutEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
-  const onGlossary = useCallback((g: GlossaryEntry) => {
-    if (selectionRef.current) {
-      setSelection(undefined);
-      return;
-    }
-    setGloss(g);
-  }, []);
   const selectedBlock = rows.find(
     (r) => r.block.id === selection?.blockId,
   )?.block;
@@ -754,7 +708,6 @@ function ReaderContent() {
               marks={marksByBlock[item.block.id] ?? emptyMarks}
               onWord={onWord}
               onSelect={onSelect}
-              onGlossary={onGlossary}
               onMove={onMove}
               onDrag={onDrag}
               testMove={__DEV__ && params.dev === "handles"}
@@ -1017,18 +970,6 @@ function ReaderContent() {
           <Label style={{ color: p.accentText, fontSize: 13 }}>{notice}</Label>
         </View>
       )}
-      <Sheet
-        title={gloss?.term ?? es.definition}
-        visible={!!gloss}
-        onClose={() => setGloss(undefined)}
-      >
-        <Label style={{ fontSize: 19 }}>{gloss?.definition}</Label>
-        {!gloss?.verified && (
-          <Label style={{ fontSize: 12, color: p.muted, marginTop: 20 }}>
-            {es.unverified}
-          </Label>
-        )}
-      </Sheet>
       <ThemePicker visible={themes} onClose={() => setThemes(false)} />
       <ContentsPanel
         visible={toc}
