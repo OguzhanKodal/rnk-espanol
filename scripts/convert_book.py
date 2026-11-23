@@ -151,6 +151,9 @@ def convert(pdf, overrides):
     return book
 
 def catalog():
+    catalog_path = ROOT / 'assets/books/catalog.json'
+    if catalog_path.is_file():
+        return json.loads(catalog_path.read_text(encoding='utf-8'))
     entries=[(BOOK_ID,TITLE,'breves',True),('el-coran','El Corán','coran',False),('el-coran-significado','El Corán – Significado en español','coran',False),('las-palabras','Las Palabras','coleccion',False),('las-cartas','Las Cartas','coleccion',False),('los-destellos','Los Destellos','coleccion',False),('los-rayos','Los Rayos','coleccion',False),('el-masnawi-nuriye','El Masnawi Nuriye','coleccion',False),('el-fruto-de-la-fe','El Fruto de la Fe','breves',False),('guia-para-la-juventud','Guía para la Juventud','breves',False)]
     return {'books':[dict(id=i,title=t,shelf=s,available=a) for i,t,s,a in entries]}
 

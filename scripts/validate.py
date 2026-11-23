@@ -24,14 +24,22 @@ def arabic(x):
     if 'unresolved' in x:check(x['unresolved'] is True and x['text']=='','Invalid unresolved Arabic')
     else: string(x['text']);check(bool(re.search('[\u0600-\u06ff]',x['text'])),'Arabic script missing')
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--pdf',action='store_true');ap.add_argument('--source-root',type=Path);args=ap.parse_args()
+    from convert_docx import BOOK_ID, DOCX, PDF
+    from validate_destellos import validate_destellos
+
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--pdf',action='store_true');ap.add_argument('--source-root',type=Path);ap.add_argument('--docx',type=Path);ap.add_argument('--destellos-pdf',type=Path,default=PDF);args=ap.parse_args()
     load=lambda p:json.loads((ROOT/p).read_text())
     cat=load('assets/books/catalog.json');keys(cat,['books']);check(len(cat['books'])==10,'Catalog needs ten entries');ids=set();books={}
     for c in cat['books']:
         keys(c,['id','title','shelf','available'],['coverColor']);string(c['id']);string(c['title']);check(c['id'] not in ids,'Duplicate catalog id');ids.add(c['id']);check(c['shelf'] in ['coran','coleccion','breves'],'Invalid shelf');check(type(c['available'])==bool,'Invalid available')
         if 'coverColor'in c:check(bool(re.fullmatch('#[0-9a-fA-F]{6}',c['coverColor'])),'Invalid color')
         if not c['available']:continue
+        if c['id']=='el-coran':
+            check((ROOT/'assets/quran/quran.json').is_file(),'Missing separate Quran dataset')
+            continue
         b=load(f'assets/books/{c["id"]}.json');books[b['id']]=b;keys(b,['id','title','author','credits','sections']);check(b['id']==c['id'],'Catalog/book id mismatch')
+        if b['id'] == BOOK_ID:
+            continue
         for k in ['id','title','author']:string(b[k])
         check(isinstance(b['credits'],list) and len(b['credits'])>5,'Missing credits')
         for t in b['credits']:string(t)
@@ -54,6 +62,7 @@ def main():
                 else:raise ValueError('Unknown block type '+t)
         check(pages==list(range(5,93)),'Printed pageBreak coverage')
         alltext='\n'.join(text);check('\ufffd' not in alltext,'Extraction replacement character');check('SOBRE EL MES DE RAMADÁN' not in alltext,'Running footer leaked');check('atardecer' in alltext and 'atar- decer' not in alltext,'Hyphen repair')
+    b=books['ramadan-frugalidad-agradecimiento']
     overrides=load('scripts/arabic_overrides.json');check(len(ar)==len(overrides),'Arabic count differs from overrides')
     from collections import Counter
     check(Counter(x['text'] for x in ar)==Counter(x['text'] for x in overrides.values()),'Arabic content differs from overrides')
@@ -62,10 +71,13 @@ def main():
             source=args.source_root/a['source'];check(hashlib.sha256(source.read_bytes()).hexdigest()==a['source_sha256'],'Source hash changed')
             line=source.read_text().splitlines()[a['line']-1].replace('<br/>','\n').replace(' § ',' ')
             check(all(part in line for part in a['text'].split('\n')),'Arabic not copied from source '+key)
-    glossary=load('assets/glossary.json');check(40<=len(glossary)<=120,'Glossary size')
-    for g in glossary:
-        keys(g,['term','variants','definition','verified']);string(g['term']);string(g['definition']);check(g['verified'] is False,'Glossary requires human review');check(isinstance(g['variants'],list) and bool(g['variants']),'Missing variants')
-        for v in g['variants']:string(v);check(v in alltext,'Variant absent '+v)
+    glossary=[]
+    # The current app no longer ships the glossary (8e940d1).
+    if (ROOT/'assets/glossary.json').is_file():
+        glossary=load('assets/glossary.json');check(40<=len(glossary)<=120,'Glossary size')
+        for g in glossary:
+            keys(g,['term','variants','definition','verified']);string(g['term']);string(g['definition']);check(g['verified'] is False,'Glossary requires human review');check(isinstance(g['variants'],list) and bool(g['variants']),'Missing variants')
+            for v in g['variants']:string(v);check(v in alltext,'Variant absent '+v)
     quotes=load('assets/frases.json');check(15<=len(quotes)<=25,'Quote count')
     for q in quotes:
         keys(q,['text','section','page']);string(q['text']);integer(q['page'])
@@ -103,4 +115,6 @@ def main():
                 if n==51 and 120<r.y0<134:continue
                 check(any(box.contains(r) for box in boxes),f'Unaccounted vector glyph: page {n}, {r}')
     print(f'PASS: {len(pages)} printed pages, {len(ar)} Arabic ({sum(not a.get("unresolved") for a in ar)} resolved), {len(glossary)} glossary entries, {len(quotes)} verbatim quotes')
+    if BOOK_ID in books or args.docx is not None or DOCX.is_file():
+        validate_destellos(args.docx or DOCX, args.destellos_pdf, args.source_root, books.get(BOOK_ID))
 if __name__=='__main__':main()
