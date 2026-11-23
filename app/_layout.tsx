@@ -17,6 +17,8 @@ import { Drawer, DrawerContentScrollView } from "expo-router/drawer";
 import { useFonts } from "expo-font";
 import { Amiri_400Regular } from "@expo-google-fonts/amiri";
 import { AmiriQuran_400Regular } from "@expo-google-fonts/amiri-quran";
+import { ScheherazadeNew_400Regular } from "@expo-google-fonts/scheherazade-new";
+import { NotoNaskhArabic_400Regular } from "@expo-google-fonts/noto-naskh-arabic";
 import {
   EBGaramond_400Regular,
   EBGaramond_600SemiBold,
@@ -240,6 +242,8 @@ export default function Layout() {
   const [loaded, error] = useFonts({
     Amiri_400Regular,
     AmiriQuran_400Regular,
+    ScheherazadeNew_400Regular,
+    NotoNaskhArabic_400Regular,
     EBGaramond_400Regular,
     EBGaramond_600SemiBold,
     EBGaramond_700Bold,

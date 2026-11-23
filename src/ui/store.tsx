@@ -36,6 +36,8 @@ export type Settings = {
   coords?: { latitude: number; longitude: number };
   /** Arabic size in the Quran reader; separate from the Spanish text size. */
   quranSize?: number;
+  /** Index into QURAN_FONTS (app/coran.tsx). */
+  quranFont?: number;
 };
 export type Progress = { blockId: string; page: number };
 const defaults: Settings = {

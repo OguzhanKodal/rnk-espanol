@@ -32,16 +32,22 @@ import {
   pageOf,
 } from "../src/content/quran";
 
-const QURAN_FONT = "AmiriQuran_400Regular";
+// Open (SIL OFL) naskh faces that cover every character of the Tanzil text.
+const QURAN_FONTS = [
+  "AmiriQuran_400Regular",
+  "ScheherazadeNew_400Regular",
+  "NotoNaskhArabic_400Regular",
+] as const;
+const BISMILLAH_SAMPLE = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
 const MIN_SIZE = 18,
   MAX_SIZE = 46,
   DEFAULT_SIZE = 27;
 const clampSize = (n: number) =>
   Math.round(Math.max(MIN_SIZE, Math.min(MAX_SIZE, n)));
-// Tanzil writes pause marks as separate tokens (" ۖ "). Shown attached to the
-// preceding word so the font places them above it, as in a printed mushaf, and
-// they never wrap onto the next line. Display only: the data stays verbatim.
-const keepMarks = (t: string) => t.replace(/ ([\u06D6-\u06DC])/g, "$1");
+// Tanzil writes pause marks as separate tokens (" ۖ "). A no-break space keeps
+// each mark on its word's line; attaching it instead makes Scheherazade draw
+// "رَيْبَۛ" like "ث". Display only: the data stays verbatim.
+const keepMarks = (t: string) => t.replace(/ ([\u06D6-\u06DC])/g, "\u00A0$1");
 const PAGES = Array.from({ length: PAGE_COUNT }, (_, i) => i + 1);
 const VIEWABILITY = { itemVisiblePercentThreshold: 10 };
 // Pages above the window are added in small steps when scrolling up.
@@ -52,10 +58,12 @@ type Palette = ReturnType<typeof usePalette>;
 const QuranPage = memo(function QuranPage({
   page,
   size,
+  font,
   p,
 }: {
   page: number;
   size: number;
+  font: string;
   p: Palette;
 }) {
   const q = loadQuran();
@@ -88,7 +96,7 @@ const QuranPage = memo(function QuranPage({
               >
                 <Text
                   style={{
-                    fontFamily: QURAN_FONT,
+                    fontFamily: font,
                     fontSize: Math.min(size * 0.85, 30),
                     color: ink,
                     writingDirection: "rtl",
@@ -104,7 +112,7 @@ const QuranPage = memo(function QuranPage({
             {bism && (
               <Text
                 style={{
-                  fontFamily: QURAN_FONT,
+                  fontFamily: font,
                   fontSize: size,
                   lineHeight: size * 2,
                   color: ink,
@@ -117,7 +125,7 @@ const QuranPage = memo(function QuranPage({
             )}
             <Text
               style={{
-                fontFamily: QURAN_FONT,
+                fontFamily: font,
                 fontSize: size,
                 lineHeight: size * 2.1,
                 color: ink,
@@ -161,6 +169,8 @@ export default function Coran() {
     { height: viewportHeight } = useWindowDimensions();
   const q = loadQuran();
   const size = settings.quranSize ?? DEFAULT_SIZE;
+  const fontIndex = Math.min(QURAN_FONTS.length - 1, settings.quranFont ?? 0);
+  const font = QURAN_FONTS[fontIndex];
   const initial = Math.min(
     PAGE_COUNT,
     Math.max(1, Number(params.page) || progress[QURAN_ID]?.page || 1),
@@ -171,7 +181,8 @@ export default function Coran() {
     [index, setIndex] = useState(false),
     [tab, setTab] = useState<"suras" | "juz">("suras"),
     [pinching, setPinching] = useState(false),
-    [previewScale, setPreviewScale] = useState(1);
+    [previewScale, setPreviewScale] = useState(1),
+    [typeSheet, setTypeSheet] = useState(__DEV__ && params.dev === "sheet");
   const prependArmed = useRef(false);
   const anchor = useRef(initial),
     activePinch = useRef(false),
@@ -270,9 +281,20 @@ export default function Coran() {
     );
     return () => timers.forEach(clearTimeout);
   }, [params.dev, pinchBegin, pinchUpdate, pinchEnd]);
+  useEffect(() => {
+    if (__DEV__ && params.dev?.startsWith("font"))
+      update({ quranFont: Number(params.dev.slice(4)) || 0 });
+  }, [params.dev, update]);
+  // Text size or face changes reflow the list at the page being read.
+  const restyle = (s: { quranSize?: number; quranFont?: number }) => {
+    update(s);
+    jump(anchor.current);
+  };
   const renderItem = useCallback(
-    ({ item }: { item: number }) => <QuranPage page={item} size={size} p={p} />,
-    [size, p],
+    ({ item }: { item: number }) => (
+      <QuranPage page={item} size={size} font={font} p={p} />
+    ),
+    [size, font, p],
   );
   const sura = q.suras[q.pages[visible - 1][0] - 1];
   return (
@@ -353,7 +375,126 @@ export default function Coran() {
         <Label style={{ fontSize: 14, color: p.muted }}>
           {`${es.quran.page} ${visible}`}
         </Label>
+        <Pressable
+          onPress={() => setTypeSheet(true)}
+          accessibilityRole="button"
+          accessibilityLabel={es.quran.font}
+          hitSlop={10}
+          style={{ marginLeft: 6 }}
+        >
+          <Label style={{ fontSize: 17, color: p.text }}>Aa</Label>
+        </Pressable>
       </View>
+      <Modal
+        visible={typeSheet}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTypeSheet(false)}
+      >
+        <Pressable
+          accessibilityLabel={es.close}
+          onPress={() => setTypeSheet(false)}
+          style={{ flex: 1, backgroundColor: "#0006" }}
+        />
+        <View
+          style={{
+            backgroundColor: p.paper,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            paddingBottom: Math.max(20, insets.bottom + 8),
+            gap: 10,
+          }}
+        >
+          <Label style={{ fontSize: 15, fontWeight: "600", color: p.muted }}>
+            {es.quran.font}
+          </Label>
+          {QURAN_FONTS.map((family, i) => {
+            const selected = i === fontIndex;
+            return (
+              <Pressable
+                key={family}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                accessibilityLabel={es.quran.fonts[i].name}
+                onPress={() => restyle({ quranFont: i })}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 14,
+                  borderWidth: selected ? 2 : 1,
+                  borderColor: selected ? p.accent : p.line,
+                  backgroundColor: p.bg,
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Label style={{ fontSize: 16, fontWeight: "600" }}>
+                    {es.quran.fonts[i].name}
+                  </Label>
+                  <Label style={{ fontSize: 13, color: p.muted }}>
+                    {es.quran.fonts[i].note}
+                  </Label>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: family,
+                    fontSize: 22,
+                    lineHeight: 46,
+                    color: p.text,
+                    writingDirection: "rtl",
+                  }}
+                >
+                  {BISMILLAH_SAMPLE}
+                </Text>
+              </Pressable>
+            );
+          })}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 6,
+            }}
+          >
+            <Label style={{ fontSize: 15, fontWeight: "600", color: p.muted }}>
+              {`${es.quran.size} · ${size}`}
+            </Label>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              {(
+                [
+                  [-2, es.quran.smaller, "remove"],
+                  [2, es.quran.larger, "add"],
+                ] as const
+              ).map(([step, label, icon]) => (
+                <Pressable
+                  key={icon}
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                  disabled={clampSize(size + step) === size}
+                  onPress={() => restyle({ quranSize: clampSize(size + step) })}
+                  style={({ pressed }) => ({
+                    width: 48,
+                    height: 44,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: pressed ? p.line : p.bg,
+                    borderWidth: 1,
+                    borderColor: p.line,
+                    opacity: clampSize(size + step) === size ? 0.4 : 1,
+                  })}
+                >
+                  <Ionicons name={icon} size={22} color={p.text} />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={index}
         animationType="slide"
@@ -447,7 +588,7 @@ export default function Coran() {
                   </View>
                   <Text
                     style={{
-                      fontFamily: QURAN_FONT,
+                      fontFamily: font,
                       fontSize: 22,
                       color: p.text,
                     }}

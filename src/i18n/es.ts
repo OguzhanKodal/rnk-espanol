@@ -120,6 +120,15 @@ export const es = {
     medinan: "Mediní",
     verses: "aleyas",
     credit:
-      "Texto coránico: Tanzil Project (tanzil.net), Uthmani 1.1, CC BY 3.0, sin modificaciones. Tipografía: Amiri Quran (SIL Open Font License).",
+      "Texto coránico: Tanzil Project (tanzil.net), Uthmani 1.1, CC BY 3.0, sin modificaciones. Tipografías: Amiri Quran, Scheherazade New y Noto Naskh Arabic (SIL Open Font License).",
+    font: "Tipografía",
+    size: "Tamaño",
+    smaller: "Reducir texto",
+    larger: "Ampliar texto",
+    fonts: [
+      { name: "Amiri Quran", note: "Naskh otomano clásico" },
+      { name: "Scheherazade New", note: "Naskh tradicional" },
+      { name: "Noto Naskh Arabic", note: "Naskh moderno, muy legible" },
+    ],
   },
 } as const;
