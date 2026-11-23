@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Drawer, DrawerContentScrollView } from "expo-router/drawer";
 import { useFonts } from "expo-font";
 import { Amiri_400Regular } from "@expo-google-fonts/amiri";
+import { AmiriQuran_400Regular } from "@expo-google-fonts/amiri-quran";
 import {
   EBGaramond_400Regular,
   EBGaramond_600SemiBold,
@@ -216,6 +217,14 @@ function Navigation() {
         <Drawer.Screen name="ajustes" options={{ title: es.settings }} />
         <Drawer.Screen name="acerca" options={{ title: es.about }} />
         <Drawer.Screen
+          name="coran"
+          options={{
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
+            swipeEnabled: false,
+          }}
+        />
+        <Drawer.Screen
           name="reader"
           options={{
             headerShown: false,
@@ -230,6 +239,7 @@ function Navigation() {
 export default function Layout() {
   const [loaded, error] = useFonts({
     Amiri_400Regular,
+    AmiriQuran_400Regular,
     EBGaramond_400Regular,
     EBGaramond_600SemiBold,
     EBGaramond_700Bold,

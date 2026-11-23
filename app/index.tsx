@@ -10,6 +10,7 @@ import { usePalette, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
 import { WoodBackground, WoodGrain, woodPanel } from "../src/ui/wood-grain";
 import { es } from "../src/i18n/es";
+import { QURAN_ID } from "../src/content/quran";
 const coverArt = {
   coran: require("../assets/covers/coran.jpg"),
   coleccion: require("../assets/covers/coleccion.jpg"),
@@ -346,7 +347,9 @@ export default function Home() {
                       disabled={!book.available}
                       style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
                       onPress={() =>
-                        book.available && hasBook(book.id)
+                        book.id === QURAN_ID
+                          ? router.push("/coran")
+                          : book.available && hasBook(book.id)
                           ? router.push({
                               pathname: "/reader",
                               params: { book: book.id },

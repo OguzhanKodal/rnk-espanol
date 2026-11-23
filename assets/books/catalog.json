@@ -10,7 +10,7 @@
       "id": "el-coran",
       "title": "El Corán",
       "shelf": "coran",
-      "available": false
+      "available": true
     },
     {
       "id": "el-coran-significado",

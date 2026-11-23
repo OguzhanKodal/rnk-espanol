@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/amiri": "^0.4.1",
+    "@expo-google-fonts/amiri-quran": "^0.4.1",
     "@expo-google-fonts/eb-garamond": "^0.4.3",
     "@expo-google-fonts/libre-baskerville": "^0.4.3",
     "@expo-google-fonts/playfair-display": "^0.4.2",

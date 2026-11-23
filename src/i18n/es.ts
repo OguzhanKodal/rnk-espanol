@@ -111,4 +111,15 @@ export const es = {
   choose: "Elegir",
   selectionStart: "Inicio de selección",
   selectionEnd: "Fin de selección",
+  quran: {
+    title: "El Sagrado Corán",
+    suras: "Suras",
+    juz: "Juz",
+    page: "Página",
+    meccan: "Mequí",
+    medinan: "Mediní",
+    verses: "aleyas",
+    credit:
+      "Texto coránico: Tanzil Project (tanzil.net), Uthmani 1.1, CC BY 3.0, sin modificaciones. Tipografía: Amiri Quran (SIL Open Font License).",
+  },
 } as const;

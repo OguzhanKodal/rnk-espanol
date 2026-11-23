@@ -45,6 +45,16 @@ export default function About() {
             ))}
           </View>
         ))}
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => Linking.openURL("https://tanzil.net")}
+        style={{ marginVertical: 15 }}
+      >
+        <Label style={{ fontSize: 22, fontWeight: "600" }}>
+          {es.quran.title}
+        </Label>
+        <Label style={{ fontSize: 14, marginTop: 8 }}>{es.quran.credit}</Label>
+      </Pressable>
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Pressable
         accessibilityRole="link"
