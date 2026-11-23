@@ -8,7 +8,7 @@ import { CatalogBook } from "../src/content/types";
 import { Label } from "../src/ui/common";
 import { usePalette, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
-import { WoodGrain } from "../src/ui/wood-grain";
+import { WoodBackground, WoodGrain, woodPanel } from "../src/ui/wood-grain";
 import { es } from "../src/i18n/es";
 const coverArt = {
   coran: require("../assets/covers/coran.jpg"),
@@ -218,7 +218,8 @@ export default function Home() {
     ? Math.max(...content.sections.flatMap((s) => s.blocks.map((b) => b.page)))
     : 1;
   return (
-    <View style={{ flex: 1, backgroundColor: p.bg }}>
+    <View style={{ flex: 1 }}>
+      <WoodBackground dark={p.dark} />
       <ScrollView
         ref={ref}
         onContentSizeChange={() => {
@@ -238,12 +239,19 @@ export default function Home() {
               })
             }
             style={({ pressed }) => ({
-              margin: 24,
+              marginHorizontal: 20,
+              marginTop: 18,
+              marginBottom: 6,
               padding: 20,
-              borderRadius: 20,
-              backgroundColor: p.paper,
+              borderRadius: 18,
+              backgroundColor: p.dark ? p.paper : "#FFF4DC",
               borderWidth: 1,
-              borderColor: p.line,
+              borderColor: p.dark ? "#8A6A3F" : "#B58345",
+              shadowColor: "#3B2412",
+              shadowOpacity: 0.25,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 4,
               opacity: pressed ? 0.75 : 1,
             })}
           >
@@ -301,7 +309,7 @@ export default function Home() {
         {(["coran", "coleccion", "breves"] as const).map((shelf, si) => (
           <View key={shelf}>
             <LinearGradient
-              colors={p.dark ? ["#69421F", "#80552B", "#614020"] : ["#C68A43", "#DEA452", "#BD7C36"]}
+              colors={woodPanel(p.dark)}
               style={{ paddingTop: 14 }}
             >
               <View

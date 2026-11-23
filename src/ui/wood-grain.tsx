@@ -1,4 +1,6 @@
 import React from "react";
+import { StyleSheet, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 
 // Original procedural pine grain; fixed paths keep shelf rendering inexpensive.
@@ -15,5 +17,24 @@ export function WoodGrain() {
         <Path key={i} d={d} fill="none" stroke={i % 3 ? "#6B3D17" : "#FFE3A7"} strokeWidth={i % 4 ? 0.4 : 0.8} opacity={i % 3 ? 0.13 : 0.2} />
       ))}
     </Svg>
+  );
+}
+
+export const woodPanel = (dark: boolean) =>
+  (dark
+    ? ["#69421F", "#80552B", "#614020"]
+    : ["#C68A43", "#DEA452", "#BD7C36"]) as [string, string, string];
+
+export const woodInk = (dark: boolean) => (dark ? "#FBE9C8" : "#3B2412");
+
+// Full-bleed wood: fills its parent (used behind the whole library screen and its header).
+export function WoodBackground({ dark }: { dark: boolean }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <LinearGradient colors={woodPanel(dark)} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, { overflow: "hidden" }]}>
+        <WoodGrain />
+      </View>
+    </View>
   );
 }

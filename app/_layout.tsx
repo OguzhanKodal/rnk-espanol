@@ -4,6 +4,7 @@ import { getLinkingURL } from "expo-linking";
 import React from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { brandRed } from "../src/ui/tokens";
+import { WoodBackground, woodInk, woodPanel } from "../src/ui/wood-grain";
 import {
   View,
   ActivityIndicator,
@@ -194,7 +195,15 @@ function Navigation() {
           sceneStyle: { backgroundColor: p.bg },
         }}
       >
-        <Drawer.Screen name="index" options={{ title: es.library }} />
+        <Drawer.Screen
+          name="index"
+          options={{
+            title: es.library,
+            headerBackground: () => <WoodBackground dark={p.dark} />,
+            headerTintColor: woodInk(p.dark),
+            sceneStyle: { backgroundColor: woodPanel(p.dark)[0] },
+          }}
+        />
         <Drawer.Screen name="frases" options={{ title: es.quotes }} />
         <Drawer.Screen name="marcadores" options={{ title: es.marks }} />
         <Drawer.Screen
