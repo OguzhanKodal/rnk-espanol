@@ -244,6 +244,9 @@ def spans(parts, overrides):
         kind = part["t"]
         if kind == "image":
             entry = overrides[part["key"]]
+            if entry.get("mergedInto"):
+                # Word splits one quotation over several PNGs; the first carries it all.
+                continue
             arabic = {"t": "arabic", "text": entry["text"]}
             if entry.get("unresolved"):
                 arabic["unresolved"] = True

@@ -605,6 +605,11 @@ Los ids empiezan por el párrafo de Word (`p`) o la nota al pie (`fn`). Cada ref
 - El validador reproduce Destellos a partir del Word y del PDF y verifica el esquema, los ids, las 288 páginas y la correspondencia de las 447 apariciones. Dos conversiones de Destellos produjeron un JSON idéntico byte por byte. Una extracción independiente con Poppler confirmó la página de inicio de los 2124 párrafos con texto español.
 - Se revisaron las páginas 1, 9 y 169 en Expo Go en el simulador iOS RisaleShelf. Se comprobó el texto árabe de derecha a izquierda en un bloque y en un párrafo en español, así como los saltos de página y el encabezado de remedio. El lector muestra [árabe] en los bloques independientes sin resolver, incluidas las rosetas inventariadas. Los tres spans en línea sin resolver tienen texto vacío.
 
-### Imágenes del manuscrito para el árabe no resuelto
+### Árabe compuesto y lo que queda como imagen (revisión 2026-11-23)
 
-Las 36 apariciones sin texto Unicode verificable (11 pasajes árabes y 25 rosetas `image258.png`) no quedan vacías: el convertidor copia su PNG original de `word/media/` a `assets/books/los-destellos/` y lo referencia con `image` e `imageSize`. El lector muestra esa imagen exactamente donde estaba en Word. No se ha generado ni adivinado ningún texto árabe para ellas.
+- **Ocho imágenes reúnen varios pasajes** que el corpus separa con prosa turca (`image382`, `image26`, `image75`, `image113`, `image145`, `image311`, y `image2`+`image3`+`image4`, que Word reparte en tres PNG de una sola cita). Cada pasaje se copia literalmente de su propia línea del corpus; la entrada guarda `parts` (texto, archivo, línea, SHA-256) y `joiner` (salto de línea o espacio). El validador comprueba cada parte en su línea y que el texto sea exactamente la unión de las partes. `image3` e `image4` llevan `mergedInto` hacia `image2`, que contiene la cita completa (`01 Birinci Lem’a.md:5`).
+- **`image271`** («بَعْثُ بَعْدَ الْمَوْتِ») está en esa forma exacta en `01 Sözler/33 Otuz Üçüncü Söz.md:326`.
+- **`image296`** son dos letras aisladas con guion («ك - ن», kâf y nûn de «kun»); se transcriben literalmente (`transcribed: true`), sin cita del corpus.
+- **Quedan como imagen original** solo la caligrafía otomana de los títulos `image237` (Tabiat Risalesi) e `image256` (Hastalar Risalesi) y las 25 rosetas `image258`: el convertidor copia sus PNG a `assets/books/los-destellos/` y el lector los muestra en su sitio.
+
+Resultado: 447 apariciones = 398 altas + 20 medias + 2 fusionadas + 27 imágenes (2 títulos caligráficos y 25 rosetas). Ningún pasaje árabe del texto queda sin Unicode.

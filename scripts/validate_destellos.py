@@ -20,11 +20,38 @@ def validate_sources(overrides, source_root):
 
     for key, entry in overrides.items():
         common = ["image", "inline", "context", "text", "source", "line", "source_sha256", "confidence"]
-        if entry.get("unresolved"):
-            keys(entry, common + ["unresolved", "reason"])
-            check(entry["source"] is entry["line"] is entry["source_sha256"] is None,
-                  f"Unresolved Arabic has a source citation: {key}")
+        if entry.get("mergedInto"):
+            keys(entry, common + ["mergedInto", "reason"])
+            target = overrides.get(entry["mergedInto"])
+            check(target is not None and not target.get("mergedInto")
+                  and entry["mergedInto"].split(":")[0] == key.split(":")[0]
+                  and entry["text"] == "" and entry["source"] is None,
+                  f"Invalid merged Arabic: {key}")
             string(entry["reason"])
+            continue
+        if entry.get("unresolved") or entry.get("transcribed"):
+            flag = "unresolved" if entry.get("unresolved") else "transcribed"
+            keys(entry, common + [flag, "reason"])
+            check(entry["source"] is entry["line"] is entry["source_sha256"] is None,
+                  f"Uncited Arabic has a source citation: {key}")
+            string(entry["reason"])
+        elif entry.get("parts"):
+            # One PNG that joins passages the corpus separates with Turkish prose.
+            keys(entry, common + ["parts", "joiner"])
+            check(entry["joiner"] in (" ", "\n") and len(entry["parts"]) >= 1, f"Invalid parts: {key}")
+            check(entry["text"] == entry["joiner"].join(p["text"] for p in entry["parts"]),
+                  f"Arabic differs from its joined parts: {key}")
+            first = entry["parts"][0]
+            check((entry["source"], entry["line"], entry["source_sha256"])
+                  == (first["source"], first["line"], first["source_sha256"]), f"Part citation mismatch: {key}")
+            for part in entry["parts"]:
+                keys(part, ["text", "source", "line", "source_sha256"])
+                string(part["text"]); integer(part["line"])
+                if source_root is not None:
+                    digest, lines = source_file(part["source"])
+                    check(digest == part["source_sha256"], f"Source hash changed: {part['source']}")
+                    check(part["text"] in source_excerpt(lines[part["line"] - 1:part["line"]]),
+                          f"Arabic part is absent from the recorded source line: {key}")
         else:
             keys(entry, common, ["line_end"])
             string(entry["source"])
@@ -99,7 +126,7 @@ def check_book_schema(book, overrides):
                 raise ValueError(f"Unexpected block type: {kind}")
     expected = [
         (entry["inline"], entry["text"], entry.get("unresolved", False))
-        for entry in overrides.values()
+        for entry in overrides.values() if not entry.get("mergedInto")
     ]
     check(arabic_blocks == expected, "Arabic occurrence order, position or contents changed")
     return note_count
@@ -111,7 +138,8 @@ def validate_destellos(docx, pdf, source_root, book=None):
     check_inventory(paragraphs, notes, overrides)
     validate_sources(overrides, source_root)
     counts = Counter(
-        "unresolved" if entry.get("unresolved") else entry["confidence"] for entry in overrides.values()
+        "unresolved" if entry.get("unresolved") else "merged" if entry.get("mergedInto")
+        else entry["confidence"] for entry in overrides.values()
     )
     print(f"PASS: Destellos source inventory, {len(notes)} footnotes, {len(overrides)} images {dict(counts)}")
     if book is None:
