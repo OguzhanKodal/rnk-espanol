@@ -346,7 +346,7 @@ export default function Home() {
                           : setToast(true)
                       }
                     >
-                      <View style={{ opacity: book.available ? 1 : 0.55 }}>
+                      <View>
                         <Cover book={book} />
                       </View>
                       {!book.available && (
