@@ -25,6 +25,9 @@ OVERRIDES = ROOT / "scripts/arabic_overrides_destellos.json"
 PDF = Path.home() / "Downloads/Destellos (TERMINADO).pdf"
 PDF_SHA256 = "92b627f2d48900a2077200e102ab29cae36ebfcfddf373f56d6cb4bf9d484a49"
 PDF_PAGES = 288
+# Unresolved Arabic keeps the manuscript's own PNG so readers still see it.
+IMAGE_DIR = ROOT / "assets/books" / BOOK_ID
+IMAGE_SIZES = {}
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
@@ -115,6 +118,15 @@ def read_docx(path):
     if actual_hash != DOCX_SHA256:
         raise ValueError(f"Unexpected Destellos manuscript SHA-256: {actual_hash}")
     with ZipFile(path) as archive:
+        for name in archive.namelist():
+            if name.startswith("word/media/") and name.endswith(".png"):
+                data = archive.read(name)
+                if data[:8] != b"\x89PNG\r\n\x1a\n":
+                    raise ValueError(f"{name} is not a PNG")
+                IMAGE_SIZES[name.rsplit("/", 1)[1]] = [
+                    int.from_bytes(data[16:20], "big"),
+                    int.from_bytes(data[20:24], "big"),
+                ]
         styles = ET.fromstring(archive.read("word/styles.xml"))
         by_id = {e.get(W + "styleId"): e for e in styles.findall(W + "style")}
 
@@ -235,6 +247,8 @@ def spans(parts, overrides):
             arabic = {"t": "arabic", "text": entry["text"]}
             if entry.get("unresolved"):
                 arabic["unresolved"] = True
+                arabic["image"] = entry["image"]
+                arabic["imageSize"] = IMAGE_SIZES[entry["image"]]
             result.append(arabic)
             continue
         value = part["text"]
@@ -558,6 +572,14 @@ def main():
     overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
     check_inventory(paragraphs, notes, overrides)
     located = locate_pages(paragraphs, args.docx, args.pdf)
+    names = sorted({v["image"] for v in overrides.values() if v.get("unresolved")})
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    with ZipFile(args.docx) as archive:
+        for name in names:
+            (IMAGE_DIR / name).write_bytes(archive.read("word/media/" + name))
+    for stale in IMAGE_DIR.glob("*.png"):
+        if stale.name not in names:
+            stale.unlink()
     book = convert(paragraphs, notes, overrides, located)
     write_json(args.output_dir / f"{BOOK_ID}.json", book)
     print(f"{len(book['sections'])} sections, {len(overrides)} Arabic occurrences")

@@ -23,6 +23,11 @@ def integer(x):check(type(x)==int and x>0,'Expected positive integer')
 def arabic(x):
     if 'unresolved' in x:check(x['unresolved'] is True and x['text']=='','Invalid unresolved Arabic')
     else: string(x['text']);check(bool(re.search('[\u0600-\u06ff]',x['text'])),'Arabic script missing')
+    if 'imageSize' in x:  # book blocks only; override records also carry 'image'
+        size=x.get('imageSize')
+        check(x.get('unresolved') is True and (ROOT/'assets/books/los-destellos'/x['image']).is_file()
+              and isinstance(size,list) and len(size)==2 and all(type(n)==int and n>0 for n in size),
+              f"Invalid manuscript image {x['image']}")
 def main():
     from convert_docx import BOOK_ID, DOCX, PDF
     from validate_destellos import validate_destellos
@@ -51,11 +56,11 @@ def main():
                 if t=='pageBreak':keys(x,base);pages.append(x['page'])
                 elif t=='heading':
                     keys(x,base+['level','text']);check(x['level'] in [1,2,3],'Heading level');string(x['text']);text.append(x['text'])
-                elif t=='arabic':keys(x,base+['text'],['unresolved']);arabic(x);ar.append(x)
+                elif t=='arabic':keys(x,base+['text'],['unresolved','image','imageSize']);arabic(x);ar.append(x)
                 elif t in ['paragraph','note']:
                     keys(x,base+['spans']);check(isinstance(x['spans'],list) and bool(x['spans']),'Empty spans')
                     for sp in x['spans']:
-                        keys(sp,['t','text'],['unresolved'] if sp['t']=='arabic' else [])
+                        keys(sp,['t','text'],['unresolved','image','imageSize'] if sp['t']=='arabic' else [])
                         if sp['t']=='arabic':arabic(sp);ar.append(sp)
                         else:check(sp['t'] in ['text','bold','italic'],'Invalid span');string(sp['text'])
                     text.append(''.join(sp['text'] for sp in x['spans']))

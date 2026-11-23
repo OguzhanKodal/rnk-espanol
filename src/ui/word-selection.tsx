@@ -15,6 +15,8 @@ export type WordPiece = {
   start: number;
   end: number;
   style: TextStyle;
+  /** Inline content (a manuscript image) drawn instead of `text`. */
+  inline?: React.ReactNode;
 };
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -154,7 +156,7 @@ export function WordSelection({
               },
             ]}
           >
-            {piece.text}
+            {piece.inline ?? piece.text}
           </Text>
         ))}
       </Text>
@@ -249,7 +251,7 @@ const WordMeasurements = memo(function WordMeasurements({
             >
               {pieces.slice(0, i + 1).map((t, j) => (
                 <Text key={j} style={t.style}>
-                  {j === i ? t.text.trimEnd() : t.text}
+                  {t.inline ?? (j === i ? t.text.trimEnd() : t.text)}
                 </Text>
               ))}
             </Text>

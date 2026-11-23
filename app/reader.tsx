@@ -20,12 +20,13 @@ import {
   Share,
   TextInput,
   Alert,
+  Image,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Clipboard from "expo-clipboard";
-import { getBook } from "../src/content/load";
+import { bookImage, getBook } from "../src/content/load";
 import { Block, Span } from "../src/content/types";
 import { useStore, usePalette, Mark } from "../src/ui/store";
 import { Label, Sheet, Button } from "../src/ui/common";
@@ -41,6 +42,64 @@ const colors = [
   "#A6CB90",
   "#E9A9C8",
 ];
+// Arabic the converter could not recover as text keeps the manuscript's own PNG
+// (black ink on transparency), tinted like Arabic text and scaled to the font.
+function ManuscriptImage({
+  bookId,
+  name,
+  size,
+  fontSize,
+  color,
+  inline,
+}: {
+  bookId: string;
+  name: string;
+  size?: [number, number];
+  fontSize: number;
+  color: string;
+  inline?: boolean;
+}) {
+  const { width: screen } = useWindowDimensions();
+  const p = usePalette();
+  const source = bookImage(bookId, name);
+  if (!source || !size) return null;
+  const [w, h] = size;
+  // ~51 px is one line of Arabic in these PNGs.
+  const scale = (fontSize * 1.7) / 51;
+  if (inline) {
+    // iOS fills an inline attachment's transparent pixels when tinted, so inline
+    // images keep their black ink (on a light chip in dark themes) and are
+    // capped at one line so they never overlap the surrounding lines.
+    const height = Math.min(h * scale, fontSize * 1.6);
+    return (
+      <Image
+        source={source}
+        accessibilityLabel={es.arabic}
+        resizeMode="contain"
+        style={{
+          width: (height * w) / h,
+          height,
+          ...(p.dark ? { backgroundColor: "#F3E9D6", borderRadius: 4 } : {}),
+        }}
+      />
+    );
+  }
+  const width = Math.min(w * scale, screen - 50);
+  return (
+    <Image
+      source={source}
+      accessibilityLabel={es.arabic}
+      resizeMode="contain"
+      style={{
+        width,
+        height: (width * h) / w,
+        tintColor: color,
+        alignSelf: "center",
+        marginVertical: 20,
+      }}
+    />
+  );
+}
 const blockText = (b: Block) =>
   "spans" in b
     ? b.spans.map((s) => s.text).join("")
@@ -49,6 +108,7 @@ const blockText = (b: Block) =>
       : "";
 const BlockView = memo(function BlockView({
   row,
+  bookId,
   fontSize,
   font,
   color,
@@ -62,6 +122,7 @@ const BlockView = memo(function BlockView({
   testMove,
 }: {
   row: Row;
+  bookId: string;
   fontSize: number;
   font: string;
   color: string;
@@ -102,10 +163,22 @@ const BlockView = memo(function BlockView({
           (m) => m.kind === "highlight" && m.start < end && m.end > start,
         )
         .at(-1);
+      const image =
+        t.span.t === "arabic" && t.span.image ? t.span : undefined;
       return {
         text: t.text,
         start,
         end,
+        inline: image?.image ? (
+          <ManuscriptImage
+            bookId={bookId}
+            name={image.image}
+            size={image.imageSize}
+            fontSize={fontSize}
+            color={p.arabic}
+            inline
+          />
+        ) : undefined,
         style: {
           ...(t.span.t === "arabic" ? { fontSize: fontSize * 1.15 } : {}),
           fontFamily:
@@ -125,7 +198,7 @@ const BlockView = memo(function BlockView({
         },
       };
     });
-  }, [b, color, font, fontSize, marks, p]);
+  }, [b, bookId, color, font, fontSize, marks, p]);
   if (b.type === "pageBreak")
     return (
       <View
@@ -168,6 +241,16 @@ const BlockView = memo(function BlockView({
       >
         {b.text}
       </Text>
+    );
+  if (b.type === "arabic" && b.image)
+    return (
+      <ManuscriptImage
+        bookId={bookId}
+        name={b.image}
+        size={b.imageSize}
+        fontSize={fontSize}
+        color={p.arabic}
+      />
     );
   if (b.type === "arabic")
     return (
@@ -698,6 +781,7 @@ function ReaderContent() {
           renderItem={({ item }) => (
             <BlockView
               row={item}
+              bookId={book.id}
               fontSize={settings.fontSize}
               font={font}
               color={p.text}

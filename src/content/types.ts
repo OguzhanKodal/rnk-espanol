@@ -29,11 +29,20 @@ export type Block =
       text: string;
       page: number;
       unresolved?: true;
+      /** Manuscript PNG shown when the Arabic could not be recovered as text. */
+      image?: string;
+      imageSize?: [number, number];
     }
   | { id: string; type: "note"; spans: Span[]; page: number }
   | { id: string; type: "pageBreak"; page: number };
 export type Span =
   | { t: "text"; text: string }
-  | { t: "arabic"; text: string; unresolved?: true }
+  | {
+      t: "arabic";
+      text: string;
+      unresolved?: true;
+      image?: string;
+      imageSize?: [number, number];
+    }
   | { t: "bold"; text: string }
   | { t: "italic"; text: string };

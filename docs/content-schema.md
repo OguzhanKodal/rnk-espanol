@@ -47,5 +47,6 @@ Rules
 - Block ids are stable across reruns of the converter (`<sectionId>-b<index>`), because highlights/notes are anchored to `blockId + start/end character offset` over the concatenated span text of that block.
 - `page` is the source page where the block starts. The first book uses printed folios. A Word manuscript uses the one-based page position in its Microsoft Word PDF export.
 - `unresolved: true` arabic has `text: ""` and the app shows a small grey "[árabe]" marker.
+- An unresolved arabic block or span may carry `image` (a PNG copied from the manuscript into `assets/books/<bookId>/`) and `imageSize: [width, height]` in pixels. The reader then shows that original image instead of the marker: blocks tinted with the Arabic colour, inline spans untinted and capped at one line height. `scripts-ui/gen-registry.mjs` exposes these files as `bookImages`.
 
 Interaction: tap opens no word popup. Long-press selects UTF-16 text ranges for annotation, copy and share. Only catalog, requested books and quotes are bundled; no dictionary dataset is required.

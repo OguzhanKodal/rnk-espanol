@@ -79,7 +79,7 @@ def check_book_schema(book, overrides):
                 string(block["text"])
                 check(type(block["level"]) is int and 1 <= block["level"] <= 3, "Invalid heading level")
             elif kind == "arabic":
-                keys(block, base + ["text"], ["unresolved"])
+                keys(block, base + ["text"], ["unresolved", "image", "imageSize"])
                 arabic(block)
                 arabic_blocks.append((False, block["text"], block.get("unresolved", False)))
             elif kind in ("paragraph", "note"):
@@ -89,7 +89,7 @@ def check_book_schema(book, overrides):
                 for span in block["spans"]:
                     check(span["t"] in ("text", "bold", "italic", "arabic"), f"Invalid span: {block_id}")
                     if span["t"] == "arabic":
-                        keys(span, ["t", "text"], ["unresolved"])
+                        keys(span, ["t", "text"], ["unresolved", "image", "imageSize"])
                         arabic(span)
                         arabic_blocks.append((True, span["text"], span.get("unresolved", False)))
                     else:

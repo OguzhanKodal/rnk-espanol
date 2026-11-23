@@ -1,4 +1,4 @@
-import { bookLoaders, catalogData, frasesData } from "./registry";
+import { bookImages, bookLoaders, catalogData, frasesData } from "./registry";
 import { Book, Catalog } from "./types";
 export type Quote = {
   text: string;
@@ -14,6 +14,8 @@ export const getBook = (id: string): Book =>
   (Object.hasOwn(bookLoaders, id)
     ? bookLoaders[id]()
     : bookLoaders.muestra()) as Book;
+export const bookImage = (bookId: string, name: string): number | undefined =>
+  bookImages[bookId]?.[name];
 export const hasBook = (id: string) => Object.hasOwn(bookLoaders, id);
 export const normalize = (s: string) =>
   s

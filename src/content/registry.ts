@@ -3,4 +3,16 @@ export const catalogData = require('../../assets/books/catalog.json');
 export const bookLoaders: Record<string, () => unknown> = {"ramadan-frugalidad-agradecimiento": () => require('../../assets/books/ramadan-frugalidad-agradecimiento.json'),
 "los-destellos": () => require('../../assets/books/los-destellos.json'),
 muestra: () => require('./fixtures/sample-book.json')};
+export const bookImages: Record<string, Record<string, number>> = {"los-destellos": {"image113.png": require('../../assets/books/los-destellos/image113.png'),
+"image145.png": require('../../assets/books/los-destellos/image145.png'),
+"image237.png": require('../../assets/books/los-destellos/image237.png'),
+"image256.png": require('../../assets/books/los-destellos/image256.png'),
+"image258.png": require('../../assets/books/los-destellos/image258.png'),
+"image26.png": require('../../assets/books/los-destellos/image26.png'),
+"image271.png": require('../../assets/books/los-destellos/image271.png'),
+"image296.png": require('../../assets/books/los-destellos/image296.png'),
+"image3.png": require('../../assets/books/los-destellos/image3.png'),
+"image311.png": require('../../assets/books/los-destellos/image311.png'),
+"image382.png": require('../../assets/books/los-destellos/image382.png'),
+"image75.png": require('../../assets/books/los-destellos/image75.png')}};
 export const frasesData = require('../../assets/frases.json');

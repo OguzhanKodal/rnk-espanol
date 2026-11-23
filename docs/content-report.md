@@ -604,3 +604,7 @@ Los ids empiezan por el párrafo de Word (`p`) o la nota al pie (`fn`). Cada ref
 - `scripts/validate.py --source-root …` validó las citas del primer libro y el inventario de Destellos con sus hashes y pasajes fuente.
 - El validador reproduce Destellos a partir del Word y del PDF y verifica el esquema, los ids, las 288 páginas y la correspondencia de las 447 apariciones. Dos conversiones de Destellos produjeron un JSON idéntico byte por byte. Una extracción independiente con Poppler confirmó la página de inicio de los 2124 párrafos con texto español.
 - Se revisaron las páginas 1, 9 y 169 en Expo Go en el simulador iOS RisaleShelf. Se comprobó el texto árabe de derecha a izquierda en un bloque y en un párrafo en español, así como los saltos de página y el encabezado de remedio. El lector muestra [árabe] en los bloques independientes sin resolver, incluidas las rosetas inventariadas. Los tres spans en línea sin resolver tienen texto vacío.
+
+### Imágenes del manuscrito para el árabe no resuelto
+
+Las 36 apariciones sin texto Unicode verificable (11 pasajes árabes y 25 rosetas `image258.png`) no quedan vacías: el convertidor copia su PNG original de `word/media/` a `assets/books/los-destellos/` y lo referencia con `image` e `imageSize`. El lector muestra esa imagen exactamente donde estaba en Word. No se ha generado ni adivinado ningún texto árabe para ellas.
