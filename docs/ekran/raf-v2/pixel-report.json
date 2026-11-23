@@ -1,0 +1,44 @@
+[
+  {
+    "pair": "selection-clear",
+    "roi": [
+      0,
+      400,
+      1206,
+      1660
+    ],
+    "selectionPixels": 73379,
+    "changedPixelsOutsideSelection": 43837,
+    "changedSolidGlyphPixels": 575,
+    "pixelsAboveOneLevelRasterTolerance": 0,
+    "maxChannelDeltaOutsideSelection": 1
+  },
+  {
+    "pair": "handle-move",
+    "roi": [
+      0,
+      400,
+      1206,
+      1660
+    ],
+    "selectionPixels": 219212,
+    "changedPixelsOutsideSelection": 0,
+    "changedSolidGlyphPixels": 0,
+    "pixelsAboveOneLevelRasterTolerance": 0,
+    "maxChannelDeltaOutsideSelection": 0
+  },
+  {
+    "pair": "native-long-press",
+    "roi": [
+      0,
+      400,
+      1206,
+      1660
+    ],
+    "selectionPixels": 23420,
+    "changedPixelsOutsideSelection": 41422,
+    "changedSolidGlyphPixels": 513,
+    "pixelsAboveOneLevelRasterTolerance": 0,
+    "maxChannelDeltaOutsideSelection": 1
+  }
+]
