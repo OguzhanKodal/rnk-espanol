@@ -20,18 +20,17 @@ node scripts-ui/capture-simulator.mjs
 ## Choices and behaviour
 
 - Kept the existing `app/` Router root. All application copy is in `src/i18n/es.ts`;
-  book titles, credits, glossary definitions and quotes come from content JSON.
+  book titles, credits and quotes come from content JSON.
 - Router SDK 58 bundles Drawer; use its own Drawer content exports, without a
   separate React Navigation Drawer dependency. No accounts or profile.
 - Warm SVG/gradient shelves and original double-border leather-colour covers.
   No reference artwork, logos or icons were copied. Missing catalog entries show
   a short “Próximamente” toast.
-- Catalog, books, glossary and quotes prefer actual assets. The registry generator
+- Catalog, books and quotes prefer actual assets. The registry generator
   checks individual files, retains the Arabic sample, and uses fixtures for missing
   collections. Re-run it after changing asset files while Metro is running.
 - Reader uses a virtualized FlatList of memoized blocks and nested Text spans;
-  glossary ranges are memoized, accent/case insensitive, longest phrase first,
-  with word boundaries. Arabic spans remain together and use Amiri, red and RTL.
+  Arabic spans remain together and use Amiri, red and RTL.
   Unresolved Arabic uses the contract's `[árabe]` marker.
 - Long press selects a word. Every paragraph keeps the same native nested Text
   structure in every selection state; two absolute draggable endpoints use hidden
@@ -54,19 +53,18 @@ node scripts-ui/capture-simulator.mjs
   The location permission is Spanish in app.json; Expo Go's own permission prompt
   belongs to its host binary. GPS denial/failure leaves the city picker usable.
 - All actual content credits are shown verbatim. Unavailable books are placeholders;
-  sample fixtures are demonstration text. Editorial glossary definitions retain
-  their `verified` status and show the review notice when unverified.
+  sample fixtures are demonstration text.
 
 ## Simulator and regression verification
 
 Screenshots in `docs/ekran/` cover home top/bottom, drawer, inline and standalone
-Arabic, glossary card, selection tools, colour tools, bookmarks, prayer schedule,
-dark reader, glossary list, quotes, settings, credits, table of contents, note
+Arabic, selection tools, colour tools, bookmarks, prayer schedule,
+dark reader, quotes, settings, credits, table of contents, note
 input, persisted annotations, enlarged text and the converted real book. Each was
 opened and visually reviewed; bad intermediate captures were replaced.
 
 Development-only `dev` query parameters allow reproducible states without native
-selection-menu automation. Reader supports `arabic`, `glossary`, `selection`,
+selection-menu automation. Reader supports `arabic`, `selection`,
 `colors`, `dark`, `toc`, `note`, `large`, `persist`. `persist` writes three clearly
 identified `dev-*` records to the simulator's local DB. Home supports `top`,
 `bottom`, `drawer`. These switches are guarded by `__DEV__` and inactive in release.
@@ -166,7 +164,7 @@ Final pinch capture: all five 23/29/18/32/23 px states keep the beginning of\nth
 
 - Seven reading palettes, in order: Claro suave, Claro, Papel antiguo (default),
   Oscuro, Galaxia, Atardecer and Noche ámbar. Each supplies page, raised surface,
-  text, muted, borders, Arabic, glossary accent and contrasting accent foreground.
+  text, muted, borders, Arabic, selection accent and contrasting accent foreground.
   Existing screens consume the shared palette; shelf wood and cover artwork retain
   their material colours. Versioned SQLite migration maps old 0/1/2 to 1/2/3 once.
 - Ajustes has a current-theme row. The reader's Aa display control opens the same
@@ -182,7 +180,7 @@ Final pinch capture: all five 23/29/18/32/23 px states keep the beginning of\nth
   the existing store by book and jump to their blocks; empty tabs have Spanish copy.
 - Selection uses Expo Go-compatible React Native PanResponder with 44×44 pt handle
   targets. Only the active paragraph switches from nested Text to wrapping measured
-  word Text pieces, retaining serif, bold/italic, Arabic, glossary and annotation
+  word Text pieces, retaining serif, bold/italic, Arabic and annotation
   colours. onLayout provides word rectangles; a handle grant measures the paragraph
   in window coordinates. Movement finds the nearest word (with stronger vertical
   weighting for line choice), then updates the corresponding UTF-16 boundary.
@@ -190,7 +188,7 @@ Final pinch capture: all five 23/29/18/32/23 px states keep the beginning of\nth
   including responder cancellation. The toolbar sits above the footer so a selection
   near the top remains visible. All existing actions retain the same offsets.
 - Text outside the selection, empty page space, headings and header taps dismiss
-  selection. The original tap is consumed for glossary purposes. Selected words
+  selection. The original long-press tap is consumed. Selected words
   keep it. End offsets are exclusive, include the complete final word, and trim
   trailing whitespace. Existing annotations that still exactly match their source
   slice are repaired to full words on load and persisted; stale anchors stay intact.
@@ -237,7 +235,7 @@ Screenshots: 01-themes.png; 02-home-paper.png; 03-reader-paper.png;
 - Each row carries its absolute index once, before slicing. Viewability maps through
   that row rather than adding a possibly stale window offset; progress, current page,
   contents highlighting and pinch anchors continue using the full book. Selection,
-  glossary and annotations retain stable block IDs and UTF-16 offsets.
+  annotations retain stable block IDs and UTF-16 offsets.
 - Backward user drags near the window start prepend up to 40 preceding rows.
   `maintainVisibleContentPosition={{ minIndexForVisible: 0 }}` preserves the native
   visible block; the list and block keys remain unchanged during prepends. Initial
@@ -305,10 +303,8 @@ Causes and fixes (supersedes the V2/V3 chrome and selection limitations):
   Body text now uses the owner's permitted fallback: **left alignment with natural
   wrapping**, no hyphenation, no character stretching. Both Papel antiguo and
   Oscuro captures demonstrate the fallback; these are intentionally not justified.
-- Glossary decoration previously applied to a complete `word + trailing spaces`
-  token if its start fell within a term, also underlining trailing punctuation.
-  Tokens now split at exact glossary start/end boundaries, independently of
-  selection, so only the matched term receives decoration.
+- Word tokens retain fixed boundaries independent of selection. Term decoration
+  and dictionary lookups were removed in the November shelf revision.
 - Window slicing, initial destination resolution, backward prepending, pinch
   transform/finalization, Índice and all seven palettes retain their existing paths.
   No initial mount timer, scroll traversal or native dependency was added.
@@ -359,3 +355,10 @@ prefixes); it is absent from idle/restoration rendering. Persisted bold/italic
 formatting deliberately changes font metrics; selection appearance/movement/clear
 never changes those metrics. The existing block-level pinch/restore granularity
 and within-one-paragraph drag boundary remain.
+
+
+## November 2026 shelf and reader revision
+
+The dictionary screen, term decoration and word popup are removed. Tapping a word opens nothing; long-press selection, draggable handles and the complete toolbar remain. The visible Text tree and font metrics stay constant across selection; only ink, background and overlays change. Memoized rows and saved-page windowing remain.
+
+Home covers are 88×132 pt (80×120 for short treatises), with 36 pt gaps. Warm golden pine panels, lighter board lips and centered cream plaques replace the headings. Dark themes use muted amber wood. Resume and prayer cards remain.

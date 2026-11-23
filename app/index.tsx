@@ -8,6 +8,7 @@ import { CatalogBook } from "../src/content/types";
 import { Label } from "../src/ui/common";
 import { usePalette, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
+import { WoodGrain } from "../src/ui/wood-grain";
 import { es } from "../src/i18n/es";
 const coverArt = {
   coran: require("../assets/covers/coran.jpg"),
@@ -20,10 +21,10 @@ const engraved = {
   textShadowOffset: { width: 0, height: 1 },
   textShadowRadius: 1.5,
 };
-function Cover({ book }: { book: CatalogBook; index: number }) {
+function Cover({ book }: { book: CatalogBook }) {
   const small = book.shelf === "breves";
-  const w = small ? 116 : 132,
-    h = small ? 174 : 198;
+  const w = small ? 80 : 88,
+    h = small ? 120 : 132;
   const long = book.title.length;
   return (
     <View
@@ -65,15 +66,15 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
         <View
           style={{
             flex: 1,
-            paddingHorizontal: 10,
-            paddingTop: 12,
-            paddingBottom: 12,
+            paddingHorizontal: 7,
+            paddingTop: 8,
+            paddingBottom: 8,
           }}
         >
           <Label
             style={{
               fontFamily: "EBGaramond_400Regular",
-              fontSize: 6.5,
+              fontSize: 5.5,
               color: "#FBE9D8",
               textAlign: "right",
             }}
@@ -82,10 +83,13 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
           </Label>
           <View style={{ flex: 1, justifyContent: "center" }}>
             <Label
+              numberOfLines={4}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
               style={{
-                fontFamily: "UnifrakturMaguntia_400Regular",
-                fontSize: long > 30 ? 15 : long > 18 ? 19 : 24,
-                lineHeight: long > 30 ? 18 : long > 18 ? 23 : 28,
+                fontFamily: long > 30 ? "EBGaramond_600SemiBold" : "UnifrakturMaguntia_400Regular",
+                fontSize: long > 30 ? 9.5 : long > 18 ? 14 : 17,
+                lineHeight: long > 30 ? 11 : long > 18 ? 16 : 19,
                 color: "#FFFFFF",
                 textShadowColor: "#3a0d08",
                 textShadowOffset: { width: 1, height: 1.5 },
@@ -96,15 +100,15 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
             </Label>
             <Label
               style={{
-                marginTop: 8,
+                marginTop: 4,
                 fontFamily: "EBGaramond_600SemiBold",
-                fontSize: 10,
+                fontSize: 7,
                 color: "#FBE3CF",
               }}
             >
               {es.author}
             </Label>
-            <View style={{ height: 26 }} />
+            <View style={{ height: 16 }} />
           </View>
         </View>
       ) : (
@@ -113,14 +117,14 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            paddingHorizontal: 24,
+            paddingHorizontal: 12,
           }}
         >
           {book.shelf === "coleccion" && (
             <Label
               style={{
                 fontFamily: "EBGaramond_600SemiBold",
-                fontSize: 6.5,
+                fontSize: 5.5,
                 color: gold,
                 textAlign: "center",
                 ...engraved,
@@ -132,11 +136,11 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
           <Label
             style={{
               fontFamily: "PlayfairDisplay_700Bold",
-              fontSize: long > 25 ? 13 : long > 14 ? 16 : 19,
-              lineHeight: long > 25 ? 16 : long > 14 ? 19 : 23,
+              fontSize: long > 25 ? 10 : long > 14 ? 12 : 14,
+              lineHeight: long > 25 ? 12 : long > 14 ? 14 : 17,
               color: gold,
               textAlign: "center",
-              marginVertical: 9,
+              marginVertical: 5,
               ...engraved,
             }}
           >
@@ -146,8 +150,8 @@ function Cover({ book }: { book: CatalogBook; index: number }) {
             <Label
               style={{
                 fontFamily: "EBGaramond_700Bold",
-                fontSize: 7.5,
-                lineHeight: 9,
+                fontSize: 6.5,
+                lineHeight: 7.5,
                 color: gold,
                 textAlign: "center",
                 ...engraved,
@@ -169,7 +173,7 @@ export default function Home() {
     params = useLocalSearchParams(),
     nav = useNavigation();
   useEffect(() => {
-    if (__DEV__ && ["top", "bottom", "drawer"].includes(String(params.dev)))
+    if (__DEV__ && ["top", "bottom", "shelves", "drawer"].includes(String(params.dev)))
       update({ theme: 2, fontSize: 23 });
     if (__DEV__ && ["paper", "dark", "galaxy"].includes(String(params.dev)))
       update({
@@ -186,9 +190,11 @@ export default function Home() {
     }
   }, [params.dev, nav]);
   useEffect(() => {
-    if (__DEV__ && params.dev === "bottom") {
+    if (__DEV__ && ["bottom", "shelves"].includes(String(params.dev))) {
       const timer = setTimeout(
-        () => ref.current?.scrollToEnd({ animated: false }),
+        () => params.dev === "shelves"
+          ? ref.current?.scrollTo({ y: 250, animated: false })
+          : ref.current?.scrollToEnd({ animated: false }),
         700,
       );
       return () => clearTimeout(timer);
@@ -295,26 +301,9 @@ export default function Home() {
         {(["coran", "coleccion", "breves"] as const).map((shelf, si) => (
           <View key={shelf}>
             <LinearGradient
-              colors={["#F1E4D2", "#E5D0B3", "#EFDFC7"]}
+              colors={p.dark ? ["#69421F", "#80552B", "#614020"] : ["#C68A43", "#DEA452", "#BD7C36"]}
               style={{ paddingTop: 14 }}
             >
-              <View
-                style={{
-                  alignSelf: "flex-start",
-                  marginLeft: 24,
-                  borderRadius: 8,
-                  paddingHorizontal: 20,
-                  paddingVertical: 6,
-                  backgroundColor: "transparent",
-                  borderWidth: 0,
-                }}
-              >
-                <Label
-                  style={{ color: "#5B3B25", fontSize: 20, fontWeight: "600" }}
-                >
-                  {es.shelves[si]}
-                </Label>
-              </View>
               <View
                 style={{
                   position: "absolute",
@@ -326,34 +315,21 @@ export default function Home() {
                 }}
                 pointerEvents="none"
               >
-                {Array.from({ length: 50 }, (_, i) => (
-                  <View
-                    key={i}
-                    style={{
-                      position: "absolute",
-                      left: i * 11,
-                      top: 0,
-                      bottom: 0,
-                      width: i % 3 === 0 ? 2 : 1,
-                      backgroundColor: i % 2 ? "#5e3714" : "#fff",
-                      opacity: 0.025,
-                    }}
-                  />
-                ))}
+                <WoodGrain />
               </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{
-                  paddingHorizontal: 22,
-                  paddingTop: 22,
-                  paddingBottom: 13,
-                  gap: 22,
+                  paddingHorizontal: 24,
+                  paddingTop: 20,
+                  paddingBottom: 10,
+                  gap: 36,
                 }}
               >
                 {catalog.books
                   .filter((b) => b.shelf === shelf)
-                  .map((book, i) => (
+                  .map((book) => (
                     <Pressable
                       key={book.id}
                       accessibilityRole="button"
@@ -371,16 +347,16 @@ export default function Home() {
                       }
                     >
                       <View style={{ opacity: book.available ? 1 : 0.55 }}>
-                        <Cover book={book} index={i} />
+                        <Cover book={book} />
                       </View>
                       {!book.available && (
                         <View
                           style={{
                             position: "absolute",
-                            bottom: 8,
-                            left: 6,
-                            right: 6,
-                            paddingVertical: 5,
+                            bottom: 5,
+                            left: 3,
+                            right: 3,
+                            paddingVertical: 3,
                             backgroundColor: "#29251F",
                             borderRadius: 6,
                           }}
@@ -388,7 +364,7 @@ export default function Home() {
                           <Label
                             style={{
                               color: "#fff",
-                              fontSize: 12,
+                              fontSize: 9,
                               textAlign: "center",
                             }}
                           >
@@ -401,14 +377,14 @@ export default function Home() {
                           style={{
                             position: "absolute",
                             bottom: 4,
-                            left: -5,
+                            left: -2,
                             backgroundColor: "#8A3F36",
-                            padding: 6,
+                            padding: 3,
                             borderRadius: 10,
                           }}
                         >
-                          <Label style={{ fontSize: 10, color: "#fff" }}>
-                            {es.continue} · {es.page} {progress[book.id].page}
+                          <Label style={{ fontSize: 8, color: "#fff" }}>
+                            {es.page} {progress[book.id].page} · Seguir
                           </Label>
                         </View>
                       )}
@@ -417,16 +393,20 @@ export default function Home() {
               </ScrollView>
             </LinearGradient>
             <LinearGradient
-              colors={["#EAD7BA", "#D7BC94", "#BE9C74"]}
+              colors={p.dark ? ["#A37A43", "#85602E", "#533619"] : ["#F5D28A", "#DDA04D", "#AC6C2C"]}
               style={{
-                height: 19,
+                height: 30,
                 borderTopWidth: 1,
-                borderTopColor: "#F5DDB4",
+                borderTopColor: p.dark ? "#BE9456" : "#FFE5AD",
                 shadowOpacity: 0.1,
                 shadowRadius: 4,
                 shadowOffset: { width: 0, height: 5 },
               }}
-            />
+            >
+              <View style={{ alignSelf: "center", backgroundColor: p.dark ? "#C6B28C" : "#FFF1CE", borderRadius: 7, paddingHorizontal: 14, paddingVertical: 3, borderWidth: 1, borderColor: "#B58345", marginTop: 3 }}>
+                <Label style={{ color: "#51351D", fontSize: 13, lineHeight: 17, fontWeight: "600" }}>{es.shelves[si]}</Label>
+              </View>
+            </LinearGradient>
           </View>
         ))}
         <View style={{ padding: 22, paddingTop: 28 }}>
