@@ -1,6 +1,5 @@
 import React from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
-import { catalog, getBook, hasBook } from "../src/content/load";
 import { usePalette } from "../src/ui/store";
 import { Label, styles } from "../src/ui/common";
 import { es } from "../src/i18n/es";
@@ -41,33 +40,6 @@ export default function About() {
         <Label style={{ color: p.accent, fontSize: 15, fontWeight: "600" }}>
           {es.openSource}
         </Label>
-      </Pressable>
-      <View style={[styles.divider, { backgroundColor: p.line }]} />
-      <Label style={styles.title}>{es.credits}</Label>
-      {catalog.books
-        .filter((b) => hasBook(b.id))
-        .map((b) => (
-          <View key={b.id} style={{ marginVertical: 15 }}>
-            <Label style={{ fontSize: 22, fontWeight: "600" }}>{b.title}</Label>
-            <Label style={{ color: p.muted, marginTop: 8 }}>
-              {getBook(b.id).author}
-            </Label>
-            {getBook(b.id).credits.map((c, i) => (
-              <Label key={i} style={{ fontSize: 14, marginTop: 8 }}>
-                {c}
-              </Label>
-            ))}
-          </View>
-        ))}
-      <Pressable
-        accessibilityRole="link"
-        onPress={() => Linking.openURL("https://tanzil.net")}
-        style={{ marginVertical: 15 }}
-      >
-        <Label style={{ fontSize: 22, fontWeight: "600" }}>
-          {es.quran.title}
-        </Label>
-        <Label style={{ fontSize: 14, marginTop: 8 }}>{es.quran.credit}</Label>
       </Pressable>
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Pressable
