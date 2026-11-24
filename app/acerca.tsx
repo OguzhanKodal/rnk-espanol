@@ -24,10 +24,24 @@ export default function About() {
       <Label style={{ fontSize: 18, color: p.muted, marginTop: 8 }}>
         {es.language}
       </Label>
-      <Label style={{ fontSize: 17, marginTop: 30 }}>{es.aboutText}</Label>
       <Label style={{ color: p.muted, marginTop: 20, fontSize: 14 }}>
         {es.version}
       </Label>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => Linking.openURL("https://github.com/OguzhanKodal/rnk-espanol")}
+        hitSlop={8}
+        style={({ pressed }) => ({
+          alignSelf: "flex-start",
+          minHeight: 44,
+          justifyContent: "center",
+          opacity: pressed ? 0.6 : 1,
+        })}
+      >
+        <Label style={{ color: p.accent, fontSize: 15, fontWeight: "600" }}>
+          {es.openSource}
+        </Label>
+      </Pressable>
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Label style={styles.title}>{es.credits}</Label>
       {catalog.books

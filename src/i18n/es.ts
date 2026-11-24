@@ -80,8 +80,7 @@ export const es = {
   today: "Hoy",
   calculated: "Horarios calculados · confirma con tu mezquita local",
   credits: "Créditos de los libros",
-  aboutText:
-    "Una biblioteca gratuita de la colección Risale-i Nur en español. Lectura sin cuentas, sin anuncios y sin conexión.",
+  openSource: "Código abierto en GitHub",
   author: "Bediüzzaman Said Nursî",
   version: "Versión 1.0.0",
   notePlaceholder: "Escribe tu reflexión…",
