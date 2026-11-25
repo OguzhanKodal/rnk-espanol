@@ -43,6 +43,8 @@ ORDINALS = (
     "Veintinueve", "Treinta", "Treinta y Uno", "Treinta y Dos", "Treinta y Tres",
 )
 DESTELLOS = tuple(f"Destello {ordinal}" for ordinal in ORDINALS)
+# Manuscript notes to the editor, not part of the book (Oğuz, 2026-11-25).
+EDITORIAL_NOTES = ("(FALTAN MUCHAS FRASES EN ÁRABE)",)
 SECTION_TITLES = ("DESTELLOS", "Introducción", *DESTELLOS, "Una Súplica", "Oración final")
 
 
@@ -527,7 +529,11 @@ def convert(paragraphs, notes, overrides, located):
         "credits": [p.text for p in paragraphs[2:4]], "sections": [],
     }
     previous_page = 0
+    dropped = []
     for p in paragraphs:
+        if p.text.strip() in EDITORIAL_NOTES and not p.footnotes:
+            dropped.append(p.text.strip())
+            continue
         title = title_text(p)
         section_title = title if title in ("DESTELLOS", *DESTELLOS, "Una Súplica") else {
             "p7": "Introducción", "p3268": "Oración final",
@@ -558,6 +564,8 @@ def convert(paragraphs, notes, overrides, located):
             block_id = f"{section['id']}-b{len(section['blocks']) + 1}"
             section["blocks"].append({"id": block_id, **block, "page": page})
 
+    if sorted(dropped) != sorted(EDITORIAL_NOTES):
+        raise ValueError(f"Editorial notes not found exactly once: {dropped}")
     if tuple(section["title"] for section in book["sections"]) != SECTION_TITLES:
         raise ValueError("Unexpected section boundaries")
     return book

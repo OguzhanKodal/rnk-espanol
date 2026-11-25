@@ -114,7 +114,7 @@ scripts/.venv/bin/python scripts/validate.py --docx "$HOME/Downloads/Destellos (
 
 ### Observaciones del manuscrito
 
-- El Destello Siete contiene la anotación de edición «(FALTAN MUCHAS FRASES EN ÁRABE)» en el párrafo 355. La anotación se conserva. Las frases sin imagen ni texto en el Word quedan fuera del inventario de imágenes.
+- El Destello Siete contiene la anotación de edición «(FALTAN MUCHAS FRASES EN ÁRABE)» en el párrafo 355. Es una nota para el editor, no parte del libro, y el conversor la omite (`EDITORIAL_NOTES`). Las frases sin imagen ni texto en el Word quedan fuera del inventario de imágenes.
 - Los Destellos Ocho, Nueve, Quince, Dieciocho, Veintisiete y Treinta y Uno a Treinta y Tres remiten a otras ediciones o partes de la colección. Se conservan esas remisiones. Los Destellos Cinco y Seis describen tratados pospuestos y el Veintiocho ofrece una selección.
 - El Destello Veinticinco repite el rótulo «SEXTO REMEDIO». La propia nota 36 explica la repetición. Las 61 referencias a notas tienen cuerpo en el Word.
 - El orden XML de las imágenes 330 y 331 del Destello Veintinueve está invertido con respecto a la secuencia del texto en el corpus. El JSON conserva el orden del manuscrito.
