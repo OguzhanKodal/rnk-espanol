@@ -11,6 +11,12 @@ npm install
 npx expo start
 ```
 
+## Libros / Kitaplar
+
+Los textos de los libros no están en este repositorio. Sin ellos la app abre con un libro de muestra. Para la versión completa, copia los archivos del libro en `assets/books/` (por ejemplo `los-destellos.json`) y `assets/frases.json`.
+
+Kitap metinleri bu depoda yok. Onlar olmadan uygulama örnek bir kitapla açılır. Tam sürüm için kitap dosyalarını `assets/books/` (ör. `los-destellos.json`) ve `assets/frases.json` konumuna koyun.
+
 ## Compilar APK / APK derleme
 
 ```bash

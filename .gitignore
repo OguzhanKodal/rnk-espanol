@@ -39,3 +39,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Book content stays local, never on GitHub (Oğuz, 2026-11-26)
+/assets/books/*
+!/assets/books/catalog.json
+/assets/frases.json
+/content-src/*.pdf
+/src/content/registry.ts
