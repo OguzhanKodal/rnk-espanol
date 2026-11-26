@@ -6,13 +6,27 @@ export type CatalogBook = {
   available: boolean;
   coverColor?: string;
 };
-export type Book = {
+type BookMetadata = {
   id: string;
   title: string;
   author: string;
   credits: string[];
+};
+export type PageImage = {
+  id: string;
+  image: string;
+  imageSize: [number, number];
+};
+export type PageBook = BookMetadata & {
+  kind: "pages";
+  sections: [];
+  pages: PageImage[];
+};
+export type TextBook = BookMetadata & {
+  kind?: undefined;
   sections: Section[];
 };
+export type Book = TextBook | PageBook;
 export type Section = { id: string; title: string; blocks: Block[] };
 export type Block =
   | {

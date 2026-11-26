@@ -16,7 +16,19 @@
       "id": "el-coran-significado",
       "title": "El Corán – Significado en español",
       "shelf": "coran",
-      "available": false
+      "available": true
+    },
+    {
+      "id": "yawshan-al-kabir",
+      "title": "Yawshan al-Kabir",
+      "shelf": "coran",
+      "available": true
+    },
+    {
+      "id": "yasin-yawshan-caligrafia",
+      "title": "Yasin y Yawshan al-Kabir (caligrafía)",
+      "shelf": "coran",
+      "available": true
     },
     {
       "id": "las-palabras",
@@ -59,6 +71,54 @@
       "title": "Guía para la Juventud",
       "shelf": "breves",
       "available": false
+    },
+    {
+      "id": "la-carta-diecinueve",
+      "title": "La Carta Diecinueve",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "la-guia-del-servicio",
+      "title": "La Guía del Servicio",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "palabras-pequenas",
+      "title": "Palabras Pequeñas",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "tratado-sobre-el-ego-y-el-atomo",
+      "title": "Tratado sobre el Ego y el Átomo",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "tratado-sobre-la-hermandad",
+      "title": "Tratado sobre la Hermandad",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "tratado-sobre-la-naturaleza",
+      "title": "Tratado Sobre la Naturaleza",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "tratado-sobre-la-resurreccion",
+      "title": "Tratado sobre la Resurrección",
+      "shelf": "breves",
+      "available": true
+    },
+    {
+      "id": "tratado-sobre-los-enfermos",
+      "title": "Tratado sobre los Enfermos",
+      "shelf": "breves",
+      "available": true
     }
   ]
 }

@@ -215,9 +215,9 @@ export default function Home() {
   const section = content?.sections.find((s) =>
     s.blocks.some((b) => b.id === saved?.blockId),
   );
-  const pages = content
-    ? Math.max(...content.sections.flatMap((s) => s.blocks.map((b) => b.page)))
-    : 1;
+  const pages = content?.kind === "pages"
+    ? content.pages.length
+    : Math.max(1, ...(content?.sections.flatMap((s) => s.blocks.map((b) => b.page)) ?? []));
   return (
     <View style={{ flex: 1 }}>
       <WoodBackground dark={p.dark} />
@@ -282,9 +282,11 @@ export default function Home() {
             <Label style={{ marginTop: 16, fontSize: 18, fontWeight: "600" }}>
               {resumeBook.title}
             </Label>
-            <Label style={{ marginTop: 6, color: p.muted }}>
-              {section?.title}
-            </Label>
+            {section && (
+              <Label style={{ marginTop: 6, color: p.muted }}>
+                {section.title}
+              </Label>
+            )}
             <View
               style={{
                 height: 4,

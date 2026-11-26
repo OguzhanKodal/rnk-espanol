@@ -13,13 +13,13 @@ const entries = catalog.books
       `${JSON.stringify(b.id)}: () => require('../../assets/books/${b.id}.json')`,
   );
 entries.push(`muestra: () => require('./fixtures/sample-book.json')`);
-// Manuscript images (unresolved Arabic) live in assets/books/<id>/*.png.
+// Manuscript crops and scanned pages live under assets/books/<id>/.
 const images = catalog.books
   .filter((b) => exists(`assets/books/${b.id}/`))
   .map((b) => {
     const files = fs
       .readdirSync(new URL(`assets/books/${b.id}/`, root))
-      .filter((f) => f.endsWith(".png"))
+      .filter((f) => /\.(png|jpe?g)$/.test(f))
       .sort();
     return `${JSON.stringify(b.id)}: {${files.map((f) => `${JSON.stringify(f)}: require('../../assets/books/${b.id}/${f}')`).join(",\n")}}`;
   });

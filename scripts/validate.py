@@ -20,21 +20,79 @@ def keys(x,required,optional=()):
     check(set(required)<=set(x)<=set(required)|set(optional),f'Unexpected keys: {x.keys()}')
 def string(x):check(isinstance(x,str) and bool(x.strip()),'Expected nonempty string')
 def integer(x):check(type(x)==int and x>0,'Expected positive integer')
-def arabic(x):
+def arabic(x, book_id="los-destellos"):
     if 'unresolved' in x:check(x['unresolved'] is True and x['text']=='','Invalid unresolved Arabic')
     else: string(x['text']);check(bool(re.search('[\u0600-\u06ff]',x['text'])),'Arabic script missing')
     if 'imageSize' in x:  # book blocks only; override records also carry 'image'
         size=x.get('imageSize')
-        check(x.get('unresolved') is True and (ROOT/'assets/books/los-destellos'/x['image']).is_file()
+        check(x.get('unresolved') is True and (ROOT/'assets/books'/book_id/x['image']).is_file()
               and isinstance(size,list) and len(size)==2 and all(type(n)==int and n>0 for n in size),
               f"Invalid manuscript image {x['image']}")
+def validate_other_book(book):
+    book_id = book['id']
+    check(isinstance(book['author'], str), 'Invalid author')
+    check(isinstance(book['credits'], list), 'Invalid credits')
+    for credit in book['credits']:
+        string(credit)
+    if book.get('kind') == 'pages':
+        check(book['sections'] == [] and bool(book['pages']), 'Invalid page book')
+        for number, page in enumerate(book['pages'], 1):
+            keys(page, ['id', 'image', 'imageSize'])
+            check(page['id'] == f'page-{number}', 'Invalid page image id')
+            validate_image(page, book_id)
+        return
+    check('kind' not in book and 'pages' not in book, 'Invalid text book')
+    check(isinstance(book['sections'], list) and bool(book['sections']), 'Missing sections')
+    ids = set()
+    for section in book['sections']:
+        keys(section, ['id', 'title', 'blocks'])
+        string(section['id'])
+        string(section['title'])
+        check(section['id'] not in ids, 'Duplicate section id')
+        ids.add(section['id'])
+        for number, block in enumerate(section['blocks'], 1):
+            check(block['id'] == f"{section['id']}-b{number}", 'Unstable block id')
+            integer(block['page'])
+            base = ['id', 'type', 'page']
+            kind = block['type']
+            if kind == 'heading':
+                keys(block, base + ['level', 'text'])
+                check(block['level'] in [1, 2, 3], 'Invalid heading level')
+                string(block['text'])
+            elif kind == 'arabic':
+                keys(block, base + ['text'], ['unresolved', 'image', 'imageSize'])
+                arabic(block, book_id)
+            elif kind in ['paragraph', 'note']:
+                keys(block, base + ['spans'])
+                check(bool(block['spans']), 'Empty spans')
+                for span in block['spans']:
+                    keys(span, ['t', 'text'], ['unresolved', 'image', 'imageSize'] if span['t'] == 'arabic' else [])
+                    if span['t'] == 'arabic':
+                        arabic(span, book_id)
+                    else:
+                        check(span['t'] in ['text', 'bold', 'italic'], 'Invalid span')
+                        check(isinstance(span['text'], str) and bool(span['text']), 'Empty span text')
+            else:
+                check(kind == 'pageBreak', 'Invalid block type')
+                keys(block, base)
+
+
+def validate_image(block, book_id):
+    name = block['image']
+    check(Path(name).name == name and (ROOT/'assets/books'/book_id/name).is_file(), f'Missing image {name}')
+    size = block['imageSize']
+    check(isinstance(size, list) and len(size) == 2, 'Invalid image size')
+    for dimension in size:
+        integer(dimension)
+
+
 def main():
     from convert_docx import BOOK_ID, DOCX, PDF
     from validate_destellos import validate_destellos
 
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--pdf',action='store_true');ap.add_argument('--source-root',type=Path);ap.add_argument('--docx',type=Path);ap.add_argument('--destellos-pdf',type=Path,default=PDF);args=ap.parse_args()
     load=lambda p:json.loads((ROOT/p).read_text())
-    cat=load('assets/books/catalog.json');keys(cat,['books']);check(len(cat['books'])==10,'Catalog needs ten entries');ids=set();books={}
+    cat=load('assets/books/catalog.json');keys(cat,['books']);ids=set();books={}
     for c in cat['books']:
         keys(c,['id','title','shelf','available'],['coverColor']);string(c['id']);string(c['title']);check(c['id'] not in ids,'Duplicate catalog id');ids.add(c['id']);check(c['shelf'] in ['coran','coleccion','breves'],'Invalid shelf');check(type(c['available'])==bool,'Invalid available')
         if 'coverColor'in c:check(bool(re.fullmatch('#[0-9a-fA-F]{6}',c['coverColor'])),'Invalid color')
@@ -42,8 +100,11 @@ def main():
         if c['id']=='el-coran':
             check((ROOT/'assets/quran/quran.json').is_file(),'Missing separate Quran dataset')
             continue
-        b=load(f'assets/books/{c["id"]}.json');books[b['id']]=b;keys(b,['id','title','author','credits','sections']);check(b['id']==c['id'],'Catalog/book id mismatch')
+        b=load(f'assets/books/{c["id"]}.json');books[b['id']]=b;keys(b,['id','title','author','credits','sections'],['kind','pages']);check(b['id']==c['id'],'Catalog/book id mismatch')
         if b['id'] == BOOK_ID:
+            continue
+        if b['id'] != 'ramadan-frugalidad-agradecimiento':
+            validate_other_book(b)
             continue
         for k in ['id','title','author']:string(b[k])
         check(isinstance(b['credits'],list) and len(b['credits'])>5,'Missing credits')

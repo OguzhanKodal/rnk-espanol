@@ -41,6 +41,13 @@ export default function About() {
           {es.openSource}
         </Label>
       </Pressable>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => Linking.openURL("https://ar.wikisource.org/?oldid=496858")}
+        style={{ marginTop: 24 }}
+      >
+        <Label style={{ color: p.muted, fontSize: 13 }}>{es.yawshanCredit}</Label>
+      </Pressable>
       <View style={[styles.divider, { backgroundColor: p.line }]} />
       <Pressable
         accessibilityRole="link"

@@ -80,6 +80,8 @@ export const es = {
   today: "Hoy",
   calculated: "Horarios calculados · confirma con tu mezquita local",
   openSource: "Código abierto en GitHub",
+  yawshanCredit:
+    "Parte del texto árabe del Yawshan al-Kabir: Wikisource en árabe (CC BY-SA 4.0).",
   author: "Bediüzzaman Said Nursî",
   version: "Versión 1.0.0",
   notePlaceholder: "Escribe tu reflexión…",

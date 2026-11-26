@@ -27,7 +27,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Clipboard from "expo-clipboard";
 import { bookImage, getBook } from "../src/content/load";
-import { Block, Span } from "../src/content/types";
+import { Block, Span, TextBook } from "../src/content/types";
+import { PageReader } from "../src/ui/page-reader";
 import { useStore, usePalette, Mark } from "../src/ui/store";
 import { Label, Sheet, Button } from "../src/ui/common";
 import { es } from "../src/i18n/es";
@@ -65,7 +66,8 @@ function ManuscriptImage({
   if (!source || !size) return null;
   const [w, h] = size;
   // ~51 px is one line of Arabic in these PNGs.
-  const scale = (fontSize * 1.7) / 51;
+  const original = /\.jpe?g$/.test(name);
+  const scale = original ? fontSize / 54 : (fontSize * 1.7) / 51;
   if (inline) {
     // iOS fills an inline attachment's transparent pixels when tinted, so inline
     // images keep their black ink (on a light chip in dark themes) and are
@@ -93,7 +95,7 @@ function ManuscriptImage({
       style={{
         width,
         height: (width * h) / w,
-        tintColor: color,
+        tintColor: original ? undefined : color,
         alignSelf: "center",
         marginVertical: 20,
       }}
@@ -304,26 +306,34 @@ const BlockView = memo(function BlockView({
   );
 });
 export default function Reader() {
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{
+    book?: string;
+    block?: string;
+    page?: string;
+    dev?: string;
+  }>();
+  const book = getBook(params.book ?? "muestra");
   // A changed route is a new reading destination, even when Router reuses the screen.
-  return (
-    <ReaderContent key={`${params.book}:${params.block}:${params.page}`} />
+  const key = `${book.id}:${params.block}:${params.page}`;
+  return book.kind === "pages" ? (
+    <PageReader key={key} book={book} block={params.block} page={params.page} />
+  ) : (
+    <ReaderContent key={key} book={book} params={params} />
   );
 }
-function ReaderContent() {
-  const params = useLocalSearchParams<{
-      book?: string;
-      block?: string;
-      page?: string;
-      dev?: string;
-    }>(),
-    { settings, update, marks, putMark, deleteMark, progress, saveProgress } =
+function ReaderContent({
+  book,
+  params,
+}: {
+  book: TextBook;
+  params: { block?: string; page?: string; dev?: string };
+}) {
+  const { settings, update, marks, putMark, deleteMark, progress, saveProgress } =
       useStore(),
     p = usePalette(),
     insets = useSafeAreaInsets();
   const { height: viewportHeight } = useWindowDimensions();
-  const book = getBook(params.book ?? "muestra"),
-    rows = useMemo<Row[]>(
+  const rows = useMemo<Row[]>(
       () =>
         book.sections
           .flatMap((s) =>
