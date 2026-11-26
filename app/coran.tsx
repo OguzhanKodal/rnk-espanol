@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
+  ActivityIndicator,
   FlatList,
   Linking,
   Modal,
@@ -19,6 +20,10 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
+import { AmiriQuran_400Regular } from "@expo-google-fonts/amiri-quran/400Regular";
+import { ScheherazadeNew_400Regular } from "@expo-google-fonts/scheherazade-new/400Regular";
+import { NotoNaskhArabic_400Regular } from "@expo-google-fonts/noto-naskh-arabic/400Regular";
 import { Label } from "../src/ui/common";
 import { usePalette, useStore } from "../src/ui/store";
 import { es } from "../src/i18n/es";
@@ -161,9 +166,22 @@ const QuranPage = memo(function QuranPage({
   );
 });
 
+// These faces are only used here, so they are not loaded at app startup.
 export default function Coran() {
+  const p = usePalette();
+  const [loaded, error] = useFonts({
+    AmiriQuran_400Regular,
+    ScheherazadeNew_400Regular,
+    NotoNaskhArabic_400Regular,
+  });
+  if (!loaded && !error)
+    return <ActivityIndicator style={{ flex: 1, backgroundColor: p.bg }} />;
+  return <CoranReader />;
+}
+
+function CoranReader() {
   const params = useLocalSearchParams<{ page?: string; dev?: string }>();
-  const { settings, update, progress, saveProgress } = useStore(),
+  const { settings, update, readProgress, saveProgress } = useStore(),
     p = usePalette(),
     insets = useSafeAreaInsets(),
     { height: viewportHeight } = useWindowDimensions();
@@ -173,7 +191,7 @@ export default function Coran() {
   const font = QURAN_FONTS[fontIndex];
   const initial = Math.min(
     PAGE_COUNT,
-    Math.max(1, Number(params.page) || progress[QURAN_ID]?.page || 1),
+    Math.max(1, Number(params.page) || readProgress(QURAN_ID)?.page || 1),
   );
   // The list starts at `start`; earlier pages are prepended on demand.
   const [window, setWindow] = useState({ start: initial, generation: 0 }),
@@ -388,6 +406,9 @@ export default function Coran() {
       <Modal
         visible={typeSheet}
         transparent
+        // Android: draw under the system bars like iOS; content pads with insets.
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={() => setTypeSheet(false)}
       >

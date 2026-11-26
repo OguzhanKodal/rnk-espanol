@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Modal,
@@ -28,7 +28,9 @@ type Entry = {
   depth: number;
   children: Entry[];
 };
-export function ContentsPanel({
+// Memoized and empty while closed: the reader re-renders on every scrolled block,
+// and building the index walks the whole book.
+export const ContentsPanel = memo(function ContentsPanel({
   visible,
   onClose,
   book,
@@ -113,6 +115,11 @@ export function ContentsPanel({
     }
     return roots;
   }, [book]);
+  const blockPages = useMemo(
+    () => book.sections.flatMap((s) => s.blocks.map((b) => b.page)),
+    [book],
+  );
+  if (!mounted) return null;
   const flat: Entry[] = [];
   const visit = (e: Entry) => {
     const matches = (node: Entry): boolean =>
@@ -138,6 +145,9 @@ export function ContentsPanel({
     <Modal
       visible={mounted}
       transparent
+      // Android: draw under the system bars like iOS; content pads with insets.
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="none"
       onRequestClose={onClose}
     >
@@ -254,7 +264,7 @@ export function ContentsPanel({
                         style={{ fontSize: 14, color: p.muted, marginTop: 4 }}
                       >
                         {es.page}{" "}
-                        {book.sections.flatMap((s) => s.blocks)[e.index]?.page}
+                        {blockPages[e.index]}
                       </Label>
                     </Pressable>
                     {!!e.children.length && (
@@ -341,4 +351,4 @@ export function ContentsPanel({
       </View>
     </Modal>
   );
-}
+});

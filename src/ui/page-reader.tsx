@@ -34,12 +34,12 @@ export function PageReader({
   block?: string;
   page?: string;
 }) {
-  const { progress, saveProgress } = useStore();
+  const { readProgress, saveProgress } = useStore();
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [position, setPosition] = useState(() => {
-    const id = block ?? (page ? `page-${page}` : progress[book.id]?.blockId);
+    const id = block ?? (page ? `page-${page}` : readProgress(book.id)?.blockId);
     const first = Math.max(0, book.pages.findIndex((item) => item.id === id));
     return { zoom: 1, first };
   });

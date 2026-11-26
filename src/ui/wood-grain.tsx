@@ -10,7 +10,7 @@ const grain = Array.from({ length: 110 }, (_, i) => {
   return `M ${x} 0 C ${x + bend} 40 ${x - bend} 65 ${x} 95 S ${x + bend} 150 ${x - 1} 190`;
 });
 
-export function WoodGrain() {
+export const WoodGrain = React.memo(function WoodGrain() {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 414 190" preserveAspectRatio="none">
       {grain.map((d, i) => (
@@ -18,7 +18,7 @@ export function WoodGrain() {
       ))}
     </Svg>
   );
-}
+});
 
 export const woodPanel = (dark: boolean) =>
   (dark
@@ -28,7 +28,11 @@ export const woodPanel = (dark: boolean) =>
 export const woodInk = (dark: boolean) => (dark ? "#FBE9C8" : "#3B2412");
 
 // Full-bleed wood: fills its parent (used behind the whole library screen and its header).
-export function WoodBackground({ dark }: { dark: boolean }) {
+export const WoodBackground = React.memo(function WoodBackground({
+  dark,
+}: {
+  dark: boolean;
+}) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <LinearGradient colors={woodPanel(dark)} style={StyleSheet.absoluteFill} />
@@ -37,4 +41,4 @@ export function WoodBackground({ dark }: { dark: boolean }) {
       </View>
     </View>
   );
-}
+});

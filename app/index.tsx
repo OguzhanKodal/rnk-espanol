@@ -1,12 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ScrollView, View, Pressable, Image } from "react-native";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { catalog, hasBook, getBook } from "../src/content/load";
-import { CatalogBook } from "../src/content/types";
+import { Book, CatalogBook } from "../src/content/types";
 import { Label } from "../src/ui/common";
-import { usePalette, useStore } from "../src/ui/store";
+import { usePalette, useProgress, useStore } from "../src/ui/store";
 import { PrayerCard } from "../src/ui/prayer";
 import { WoodBackground, WoodGrain, woodPanel } from "../src/ui/wood-grain";
 import { es } from "../src/i18n/es";
@@ -17,12 +22,35 @@ const coverArt = {
   breves: require("../assets/covers/breves.jpg"),
 };
 const gold = "#EBCB86";
+const shelves = (["coran", "coleccion", "breves"] as const).map((shelf) => ({
+  shelf,
+  books: catalog.books.filter((b) => b.shelf === shelf),
+}));
+// Page count and section lookup scan the whole book; cache per book/block.
+const lastPage = new Map<string, number>();
+function resumeInfo(content: Book, blockId: string) {
+  let pages = lastPage.get(content.id);
+  if (pages === undefined) {
+    pages =
+      content.kind === "pages"
+        ? content.pages.length
+        : content.sections.reduce(
+            (max, s) => s.blocks.reduce((m, b) => Math.max(m, b.page), max),
+            1,
+          );
+    lastPage.set(content.id, pages);
+  }
+  const section = content.sections.find((s) =>
+    s.blocks.some((b) => b.id === blockId),
+  );
+  return { pages, section };
+}
 const engraved = {
   textShadowColor: "#2a0608",
   textShadowOffset: { width: 0, height: 1 },
   textShadowRadius: 1.5,
 };
-function Cover({ book }: { book: CatalogBook }) {
+const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
   const small = book.shelf === "breves";
   const w = small ? 80 : 88,
     h = small ? 120 : 132;
@@ -165,10 +193,11 @@ function Cover({ book }: { book: CatalogBook }) {
       )}
     </View>
   );
-}
+});
 export default function Home() {
   const p = usePalette(),
-    { progress, update } = useStore(),
+    { update, flushProgress } = useStore(),
+    progress = useProgress(),
     [toast, setToast] = useState(false),
     ref = useRef<React.ComponentRef<typeof ScrollView>>(null),
     params = useLocalSearchParams(),
@@ -207,17 +236,19 @@ export default function Home() {
       return () => clearTimeout(t);
     }
   }, [toast]);
+  // Show the position the reader just left without waiting for the batch.
+  useFocusEffect(useCallback(() => flushProgress(), [flushProgress]));
   const resumeBook = catalog.books.find(
     (b) => b.available && progress[b.id] && hasBook(b.id),
   );
   const saved = resumeBook ? progress[resumeBook.id] : undefined;
-  const content = resumeBook ? getBook(resumeBook.id) : undefined;
-  const section = content?.sections.find((s) =>
-    s.blocks.some((b) => b.id === saved?.blockId),
+  const { pages, section } = useMemo(
+    () =>
+      resumeBook && saved
+        ? resumeInfo(getBook(resumeBook.id), saved.blockId)
+        : { pages: 1, section: undefined },
+    [resumeBook, saved],
   );
-  const pages = content?.kind === "pages"
-    ? content.pages.length
-    : Math.max(1, ...(content?.sections.flatMap((s) => s.blocks.map((b) => b.page)) ?? []));
   return (
     <View style={{ flex: 1 }}>
       <WoodBackground dark={p.dark} />
@@ -309,7 +340,7 @@ export default function Home() {
             </Label>
           </Pressable>
         )}
-        {(["coran", "coleccion", "breves"] as const).map((shelf, si) => (
+        {shelves.map(({ shelf, books }, si) => (
           <View key={shelf}>
             <LinearGradient
               colors={woodPanel(p.dark)}
@@ -338,9 +369,7 @@ export default function Home() {
                   gap: 36,
                 }}
               >
-                {catalog.books
-                  .filter((b) => b.shelf === shelf)
-                  .map((book) => (
+                {books.map((book) => (
                     <Pressable
                       key={book.id}
                       accessibilityRole="button"

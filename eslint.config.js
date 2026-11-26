@@ -5,6 +5,7 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*'],
+    // Raw data (generated Quran source) and vendored Python packages are not app code.
+    ignores: ['dist/*', 'data-src/**', 'scripts/.venv/**', 'android/**', 'ios/**'],
   },
 ]);

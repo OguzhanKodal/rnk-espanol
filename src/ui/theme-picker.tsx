@@ -7,7 +7,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { palettes, usePalette, useStore } from "./store";
 import { Label } from "./common";
@@ -27,6 +27,9 @@ export function ThemePicker({
     <Modal
       visible={visible}
       transparent
+      // Android: draw under the system bars like iOS; content pads with insets.
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="slide"
       onRequestClose={onClose}
     >

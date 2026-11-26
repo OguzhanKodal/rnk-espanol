@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useIsFocused } from "expo-router";
 
 import { dateInZone } from "./prayer-date";
 import React, { useEffect, useMemo, useState } from "react";
@@ -31,11 +31,19 @@ export const cities = [
 ];
 export function usePrayer() {
   const { settings } = useStore(),
-    [now, setNow] = useState(new Date());
+    [now, setNow] = useState(new Date()),
+    // Drawer screens stay mounted: only tick while this screen is visible.
+    focused = useIsFocused();
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+    if (!focused) return;
+    const tick = () => setNow(new Date());
+    const first = setTimeout(tick, 0);
+    const t = setInterval(tick, 1000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(t);
+    };
+  }, [focused]);
   const legacy = cities[settings.city] ?? cities[0];
   const city = settings.location
       ? {

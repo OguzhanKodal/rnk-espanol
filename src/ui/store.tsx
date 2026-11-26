@@ -4,12 +4,15 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
+  useRef,
 } from "react";
-import { getBook } from "../content/load";
+import { getBook, hasBook } from "../content/load";
+import type { Block } from "../content/types";
 import { wordBounds } from "./selection-range";
 import type { SavedLocation } from "../data/locations";
 import * as SQLite from "expo-sqlite";
-import { Alert } from "react-native";
+import { Alert, AppState } from "react-native";
 import { es } from "../i18n/es";
 export type Mark = {
   id: string;
@@ -66,6 +69,45 @@ function write(key: string, value: unknown) {
     .catch(() => Alert.alert(es.error));
   return queue;
 }
+// Snap legacy marks to word bounds. One block map per marked book (instead of
+// flattening the whole book once per mark); unknown books are left untouched.
+function repairMarks(list: Mark[]) {
+  const books = new Map<string, Map<string, Block> | null>();
+  return list.map((m) => {
+    let blocks = books.get(m.bookId);
+    if (blocks === undefined) {
+      const book = hasBook(m.bookId) ? getBook(m.bookId) : undefined;
+      blocks = null;
+      if (book?.id === m.bookId) {
+        blocks = new Map();
+        for (const s of book.sections)
+          for (const b of s.blocks) if (!blocks.has(b.id)) blocks.set(b.id, b);
+      }
+      books.set(m.bookId, blocks);
+    }
+    const block = blocks?.get(m.blockId);
+    if (!block) return m;
+    const text =
+      "spans" in block
+        ? block.spans.map((s) => s.text).join("")
+        : "text" in block
+          ? block.text
+          : "";
+    // Only repair records still matching the source; never replace stale anchors.
+    if (!text || text.slice(m.start, m.end) !== m.text) return m;
+    const bounds = wordBounds(text, m.start, m.end);
+    return {
+      ...m,
+      ...bounds,
+      text: text.slice(bounds.start, bounds.end),
+    };
+  });
+}
+// Reading position changes on every scrolled block. It is batched: the latest
+// value is kept in a ref (read by readers when they open) and committed to
+// state/SQLite once scrolling pauses, when the app goes to background, or when
+// flushProgress() is called.
+const PROGRESS_DELAY = 800;
 const PaletteContext = createContext<(typeof palettes)[number] | null>(null);
 const Context = createContext<{
   ready: boolean;
@@ -74,14 +116,21 @@ const Context = createContext<{
   marks: Mark[];
   putMark: (m: Mark) => void;
   deleteMark: (id: string) => void;
-  progress: Record<string, Progress>;
+  /** Latest saved position, including a not-yet-committed one. Not reactive. */
+  readProgress: (id: string) => Progress | undefined;
   saveProgress: (id: string, p: Progress) => void;
+  flushProgress: () => void;
 }>({} as never);
+// Separate context: only screens that display progress re-render when it changes.
+const ProgressContext = createContext<Record<string, Progress>>({});
 export function Store({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false),
     [settings, setSettings] = useState(defaults),
     [marks, setMarks] = useState<Mark[]>([]),
     [progress, setProgress] = useState<Record<string, Progress>>({});
+  const latestProgress = useRef<Record<string, Progress>>({}),
+    progressDirty = useRef(false),
+    progressTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     (async () => {
       const d = await db();
@@ -107,33 +156,21 @@ export function Store({ children }: { children: React.ReactNode }) {
           if (v.themeVersion !== 2) void write("settings", migrated);
         }
         if (r.key === "marks") {
-          const repaired = (v as Mark[]).map((m) => {
-            const book = getBook(m.bookId);
-            if (book.id !== m.bookId) return m;
-            const block = book.sections
-              .flatMap((s) => s.blocks)
-              .find((b) => b.id === m.blockId);
-            if (!block) return m;
-            const text =
-              "spans" in block
-                ? block.spans.map((s) => s.text).join("")
-                : "text" in block
-                  ? block.text
-                  : "";
-            // Only repair records still matching the source; never replace stale anchors.
-            if (!text || text.slice(m.start, m.end) !== m.text) return m;
-            const bounds = wordBounds(text, m.start, m.end);
-            return {
-              ...m,
-              ...bounds,
-              text: text.slice(bounds.start, bounds.end),
-            };
-          });
-          setMarks(repaired);
-          if (JSON.stringify(repaired) !== JSON.stringify(v))
+          const saved = v as Mark[];
+          setMarks(saved);
+          // Repairing needs every marked book's JSON; do it after the first
+          // frame instead of delaying startup on large books.
+          setTimeout(() => {
+            const repaired = repairMarks(saved);
+            if (JSON.stringify(repaired) === JSON.stringify(saved)) return;
+            setMarks((prev) => (prev === saved ? repaired : prev));
             void write("marks", repaired);
+          }, 0);
         }
-        if (r.key === "progress") setProgress(v);
+        if (r.key === "progress") {
+          latestProgress.current = v;
+          setProgress(v);
+        }
       }
       setReady(true);
     })().catch(() => Alert.alert(es.error));
@@ -165,36 +202,74 @@ export function Store({ children }: { children: React.ReactNode }) {
       }),
     [],
   );
+  const flushProgress = useCallback(() => {
+    clearTimeout(progressTimer.current);
+    progressTimer.current = undefined;
+    if (!progressDirty.current) return;
+    progressDirty.current = false;
+    const v = latestProgress.current;
+    setProgress(v);
+    void write("progress", v);
+  }, []);
   const saveProgress = useCallback(
-    (id: string, p: Progress) =>
-      setProgress((prev) => {
-        if (prev[id]?.blockId === p.blockId) return prev;
-        const v = { ...prev, [id]: p };
-        void write("progress", v);
-        return v;
-      }),
+    (id: string, p: Progress) => {
+      if (latestProgress.current[id]?.blockId === p.blockId) return;
+      latestProgress.current = { ...latestProgress.current, [id]: p };
+      progressDirty.current = true;
+      clearTimeout(progressTimer.current);
+      progressTimer.current = setTimeout(flushProgress, PROGRESS_DELAY);
+    },
+    [flushProgress],
+  );
+  const readProgress = useCallback(
+    (id: string) => latestProgress.current[id],
     [],
+  );
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") flushProgress();
+    });
+    return () => {
+      sub.remove();
+      flushProgress();
+    };
+  }, [flushProgress]);
+  const value = useMemo(
+    () => ({
+      ready,
+      settings,
+      update,
+      marks,
+      putMark,
+      deleteMark,
+      readProgress,
+      saveProgress,
+      flushProgress,
+    }),
+    [
+      ready,
+      settings,
+      update,
+      marks,
+      putMark,
+      deleteMark,
+      readProgress,
+      saveProgress,
+      flushProgress,
+    ],
   );
   return (
     <PaletteContext.Provider value={palettes[settings.theme] ?? palettes[2]}>
-      <Context.Provider
-        value={{
-          ready,
-          settings,
-          update,
-          marks,
-          putMark,
-          deleteMark,
-          progress,
-          saveProgress,
-        }}
-      >
-        {children}
+      <Context.Provider value={value}>
+        <ProgressContext.Provider value={progress}>
+          {children}
+        </ProgressContext.Provider>
       </Context.Provider>
     </PaletteContext.Provider>
   );
 }
 export const useStore = () => useContext(Context);
+export const useProgress = () => useContext(ProgressContext);
 // bg is also the reader page; paper is the raised chrome/card surface.
 const basePalettes = [
   {

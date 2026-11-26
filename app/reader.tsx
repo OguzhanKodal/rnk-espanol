@@ -35,6 +35,8 @@ import { es } from "../src/i18n/es";
 type Row = { block: Block; section: string; absoluteIndex: number };
 type Selection = { blockId: string; start: number; end: number };
 const emptyMarks: Mark[] = [];
+const keyOf = (r: Row) => r.block.id;
+const viewabilityConfig = { itemVisiblePercentThreshold: 12 };
 const colors = [
   "#F2D856",
   "#ED9990",
@@ -328,7 +330,7 @@ function ReaderContent({
   book: TextBook;
   params: { block?: string; page?: string; dev?: string };
 }) {
-  const { settings, update, marks, putMark, deleteMark, progress, saveProgress } =
+  const { settings, update, marks, putMark, deleteMark, readProgress, saveProgress } =
       useStore(),
     p = usePalette(),
     insets = useSafeAreaInsets();
@@ -348,7 +350,7 @@ function ReaderContent({
       ? rows.findIndex((r) => r.block.id === params.block)
       : params.page
         ? rows.findIndex((r) => r.block.page >= Number(params.page))
-        : rows.findIndex((r) => r.block.id === progress[book.id]?.blockId);
+        : rows.findIndex((r) => r.block.id === readProgress(book.id)?.blockId);
     return { start: Math.max(0, index), generation: 0 };
   });
   const windowRows = useMemo(
@@ -694,6 +696,63 @@ function ReaderContent({
     ? "LibreBaskerville_400Regular"
     : "EBGaramond_400Regular";
   const current = rows[visible] ?? rows[0];
+  // Stable list props: scrolling (footer page), pinch previews and the panels
+  // re-render this screen, but visible blocks only re-render when their own
+  // inputs change.
+  const testMove = __DEV__ && params.dev === "handles";
+  const extraData = useMemo(
+    () => ({ selection, marks, settings }),
+    [selection, marks, settings],
+  );
+  const contentContainerStyle = useMemo(
+    () => ({ paddingHorizontal: 25, paddingBottom: viewportHeight }),
+    [viewportHeight],
+  );
+  const listStyle = useMemo(
+    () => ({ transform: [{ scale: previewScale }] }),
+    [previewScale],
+  );
+  const renderItem = useCallback(
+    ({ item }: { item: Row }) => (
+      <BlockView
+        row={item}
+        bookId={book.id}
+        fontSize={settings.fontSize}
+        font={font}
+        color={p.text}
+        muted={p.muted}
+        selection={selection?.blockId === item.block.id ? selection : undefined}
+        marks={marksByBlock[item.block.id] ?? emptyMarks}
+        onWord={onWord}
+        onSelect={onSelect}
+        onMove={onMove}
+        onDrag={onDrag}
+        testMove={testMove}
+      />
+    ),
+    [
+      book.id,
+      settings.fontSize,
+      font,
+      p.text,
+      p.muted,
+      selection,
+      marksByBlock,
+      onWord,
+      onSelect,
+      onMove,
+      onDrag,
+      testMove,
+    ],
+  );
+  const onJump = useCallback(
+    (id: string) => {
+      setSelection(undefined);
+      scrollTo(rows.findIndex((r) => r.block.id === id));
+    },
+    [rows, scrollTo],
+  );
+  const closeToc = useCallback(() => setToc(false), []);
   return (
     <View style={{ flex: 1, backgroundColor: p.bg, paddingTop: insets.top }}>
       <View
@@ -776,37 +835,16 @@ function ReaderContent({
             lastScroll.current = y;
           }}
           scrollEventThrottle={32}
-          style={{ transform: [{ scale: previewScale }] }}
+          style={listStyle}
           data={windowRows}
-          keyExtractor={(r) => r.block.id}
-          contentContainerStyle={{
-            paddingHorizontal: 25,
-            paddingBottom: viewportHeight,
-          }}
+          keyExtractor={keyOf}
+          contentContainerStyle={contentContainerStyle}
           initialNumToRender={10}
           windowSize={7}
           onViewableItemsChanged={onViewable}
-          viewabilityConfig={{ itemVisiblePercentThreshold: 12 }}
-          extraData={{ selection, marks, settings }}
-          renderItem={({ item }) => (
-            <BlockView
-              row={item}
-              bookId={book.id}
-              fontSize={settings.fontSize}
-              font={font}
-              color={p.text}
-              muted={p.muted}
-              selection={
-                selection?.blockId === item.block.id ? selection : undefined
-              }
-              marks={marksByBlock[item.block.id] ?? emptyMarks}
-              onWord={onWord}
-              onSelect={onSelect}
-              onMove={onMove}
-              onDrag={onDrag}
-              testMove={__DEV__ && params.dev === "handles"}
-            />
-          )}
+          viewabilityConfig={viewabilityConfig}
+          extraData={extraData}
+          renderItem={renderItem}
         />
       </GestureDetector>
       <View
@@ -862,6 +900,7 @@ function ReaderContent({
             shadowColor: "#000",
             shadowOpacity: 0.25,
             shadowRadius: 8,
+            elevation: 8,
           }}
         >
           {colorMode ? (
@@ -1067,15 +1106,12 @@ function ReaderContent({
       <ThemePicker visible={themes} onClose={() => setThemes(false)} />
       <ContentsPanel
         visible={toc}
-        onClose={() => setToc(false)}
+        onClose={closeToc}
         book={book}
         currentIndex={visible}
         page={current?.block.page ?? 1}
         devTab={params.dev === "index-marks" ? 1 : 0}
-        onJump={(id) => {
-          setSelection(undefined);
-          scrollTo(rows.findIndex((r) => r.block.id === id));
-        }}
+        onJump={onJump}
       />
       <Sheet
         title={es.note}

@@ -15,25 +15,19 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Drawer, DrawerContentScrollView } from "expo-router/drawer";
 import { useFonts } from "expo-font";
-import { Amiri_400Regular } from "@expo-google-fonts/amiri";
-import { AmiriQuran_400Regular } from "@expo-google-fonts/amiri-quran";
-import { ScheherazadeNew_400Regular } from "@expo-google-fonts/scheherazade-new";
-import { NotoNaskhArabic_400Regular } from "@expo-google-fonts/noto-naskh-arabic";
-import {
-  EBGaramond_400Regular,
-  EBGaramond_600SemiBold,
-  EBGaramond_700Bold,
-  EBGaramond_400Regular_Italic,
-  EBGaramond_700Bold_Italic,
-} from "@expo-google-fonts/eb-garamond";
-import {
-  LibreBaskerville_400Regular,
-  LibreBaskerville_700Bold,
-  LibreBaskerville_400Regular_Italic,
-  LibreBaskerville_700Bold_Italic,
-} from "@expo-google-fonts/libre-baskerville";
-import { UnifrakturMaguntia_400Regular } from "@expo-google-fonts/unifrakturmaguntia";
-import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display";
+// Per-weight imports: each package index would bundle every weight (~9 MB unused).
+import { Amiri_400Regular } from "@expo-google-fonts/amiri/400Regular";
+import { EBGaramond_400Regular } from "@expo-google-fonts/eb-garamond/400Regular";
+import { EBGaramond_600SemiBold } from "@expo-google-fonts/eb-garamond/600SemiBold";
+import { EBGaramond_700Bold } from "@expo-google-fonts/eb-garamond/700Bold";
+import { EBGaramond_400Regular_Italic } from "@expo-google-fonts/eb-garamond/400Regular_Italic";
+import { EBGaramond_700Bold_Italic } from "@expo-google-fonts/eb-garamond/700Bold_Italic";
+import { LibreBaskerville_400Regular } from "@expo-google-fonts/libre-baskerville/400Regular";
+import { LibreBaskerville_700Bold } from "@expo-google-fonts/libre-baskerville/700Bold";
+import { LibreBaskerville_400Regular_Italic } from "@expo-google-fonts/libre-baskerville/400Regular_Italic";
+import { LibreBaskerville_700Bold_Italic } from "@expo-google-fonts/libre-baskerville/700Bold_Italic";
+import { UnifrakturMaguntia_400Regular } from "@expo-google-fonts/unifrakturmaguntia/400Regular";
+import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display/700Bold";
 import { Store, usePalette, useStore } from "../src/ui/store";
 import { Label } from "../src/ui/common";
 import { es } from "../src/i18n/es";
@@ -239,11 +233,9 @@ function Navigation() {
   );
 }
 export default function Layout() {
+  // The three Quran faces load with the Quran screen (app/coran.tsx).
   const [loaded, error] = useFonts({
     Amiri_400Regular,
-    AmiriQuran_400Regular,
-    ScheherazadeNew_400Regular,
-    NotoNaskhArabic_400Regular,
     EBGaramond_400Regular,
     EBGaramond_600SemiBold,
     EBGaramond_700Bold,
