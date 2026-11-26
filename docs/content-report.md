@@ -613,3 +613,107 @@ Los ids empiezan por el párrafo de Word (`p`) o la nota al pie (`fn`). Cada ref
 - **Quedan como imagen original** solo la caligrafía otomana de los títulos `image237` (Tabiat Risalesi) e `image256` (Hastalar Risalesi) y las 25 rosetas `image258`: el convertidor copia sus PNG a `assets/books/los-destellos/` y el lector los muestra en su sitio.
 
 Resultado: 447 apariciones = 398 altas + 20 medias + 2 fusionadas + 27 imágenes (2 títulos caligráficos y 25 rosetas). Ningún pasaje árabe del texto queda sin Unicode.
+
+## Corán - Cevsen
+
+### El Corán – Significado en español
+
+- Source edition `kuranmeal.pdf`, SHA-256 `b3f9cf1594630792ce4cb6fe899a23fd270716ca4a968f809f8cc1f39edc106b`. The file starts directly with the first sura, has 448 leaves (printed folios 4–451), and names no translator or publisher in its pages or metadata. The publisher granted use according to the project brief. The app's credits are empty.
+- The converter separates the sura headings, introductory lines, basmalas, verse numbers, running heads, superscript references, and footnotes by their PDF typography. Sura 1 has no printed introduction. The two printed headings with footnote references retain the marker on the heading block and omit it from the navigation title. The three compound hyphens that meet a line break and the closing hyphen of a parenthetical aside are preserved.
+- The PDF labels 11:49 as a second “50” on folio 154 and leaves 24:19 unnumbered on folio 242. Both Spanish verses are present and their intended numbers are restored. Folio 93 prints reference 1 twice in 6:26. Both markers point to a single note block. Footnote continuations join the preceding note, and verse continuations join the preceding verse across folios.
+- Validation checks 114 suras, all 6,236 consecutive verses against the existing Tanzil sura lengths, and 936 source reference occurrences resolving to 935 printed notes. It compares the rebuilt JSON byte for byte and checks for running headers.
+
+### Yawshan al-Kabir
+
+- Source edition `DOC-20260720-WA0023_260720_140751.pdf`, SHA-256 `fd2cfcd00db17bb0d20540676eba24edfcd404a4cefd9db9de27fd3bd77b09ca`. The 106 PDF pages include a front cover, 100 numbered parts in paired Arabic and Spanish pages, two supplementary supplications, and a decorative back cover. No translator or publisher is credited. The Spanish retains the edition's 999 numbered invocations, variations in capitalization, and refrain numbers.
+- For PDF pages 93, 95, 97, 99 and 101, the Spanish text was transcribed from the scans and visually checked against the rendered pages. The hash-pinned transcription lives in the ignored `scripts/arabic_overrides_yawshan_scan.json`. For the digital pages, PDF ligatures are expanded into their printed letters, including the Calibri glyph extracted as `Ɵ` for “ti.”
+- Arabic text is accepted only when the PDF's visual glyph order, read from right to left and normalized with NFKC, agrees with the source's consonant skeleton. Corpus matches preserve NFC text and record the file and line in the local provenance JSON. The historical prayer in the Wikisource edition is transcribed from works by al-Kafʿamī. The online transcription is used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) and attributed to the contributors to [Arabic Wikisource, revision 496858](https://ar.wikisource.org/?oldid=496858). Only matches in the corresponding numbered part are accepted. Arabic variants, unrecognized glyphs, and scanned Arabic are displayed as original JPEG crops.
+- Arabic coverage is 70 corpus lines, 277 Wikisource lines, and 674 fallback units in 176 crops. The fallback units comprise 662 digital rows, 10 scanned part crops and 2 supplementary supplication crops. The local `assets/books/yawshan-al-kabir/provenance.json` maps each block to its source text or crop rectangle.
+
+### Yasin y Yawshan al-Kabir (caligrafía)
+
+- Source `cevsen.pdf`, SHA-256 `7392333fc96c23e8de1e135c269293d2f55de5194f04a7433372d0db4b235ac6`. PDF pages 1–8 contain Sura Yasin. Page 9 introduces Yawshan al-Kabir, page 10 has a short Ottoman Turkish introduction, and pages 11–61 contain Yawshan and its closing supplication. All 61 pages are retained. The scan shows no named translator or calligrapher.
+- The converter renders each page at the scan's native 300 dpi to a JPEG with quality 85. This keeps the original color and yields 14.46 MB for all 61 pages. The validator compares the manifest and all JPEGs byte for byte.
+
+### Rebuild
+
+The three PDFs default to `~/Desktop/kitaplar/`. They are read-only inputs. The Yawshan corpus defaults to the local Turkish Risale collection. Supply the visually checked scan overrides and fetch the pinned Wikisource revision before rebuilding Yawshan.
+
+```sh
+curl -fsSLG 'https://ar.wikisource.org/w/index.php' \
+  --data-urlencode 'title=دعاء الجوشن الكبير' \
+  --data-urlencode 'oldid=496858' --data-urlencode 'action=raw' \
+  -o assets/books/yawshan-wikisource.txt
+for task in convert_meal convert_yawshan convert_calligraphy \
+            validate_meal validate_yawshan validate_calligraphy validate; do
+  uv run --python 3.14 --with pymupdf==1.28.2 python "scripts/$task.py"
+done
+node scripts-ui/gen-registry.mjs
+```
+
+### Reader verification
+
+Expo Go displayed the translation opening, the notes on folio 5, Yawshan part 1, and calligraphy page 1. A temporary development setting produced the 2.5× calligraphy capture. The capture verifies the zoomed layout, while physical pinch input remains untested. The temporary setting was removed. Expo Go also displayed calligraphy page 4 in dark mode and reopened it at page 4 after switching back to the light theme.
+
+## Ocho libros breves en PDF de Word
+
+La conversión cubre 372 páginas físicas de los PDF de `~/Desktop/kitaplar`. Cada bloque toma el número de la página en la que comienza su texto. Los párrafos que continúan en la página siguiente permanecen unidos. Las 62 notas conservan la numeración original entre corchetes y se colocan después del párrafo que las cita cuando ambos empiezan en la misma página. El resto conserva la página física de inicio de la nota. Se contabilizan los renglones vacíos y las marcas árabes de ancho cero junto a imágenes. Los PDF carecen de folios y encabezados corridos en el texto extraído.
+
+El esquema representa negrita y cursiva con tipos separados. En los fragmentos impresos en negrita cursiva se conserva la cursiva. Se respetan las grafías, los separadores y las variantes de la edición. Los recortes a escala 4× conservan la forma de la tinta con fondo transparente para el lector. Los adornos se cuentan aparte. Las tablas locales `scripts/arabic_overrides_<id>.json` registran ubicación, contexto y confianza. Cada transcripción conserva su archivo, línea y SHA-256. Las coincidencias medias incluyen fórmulas cotejadas en otros pasajes, fragmentos de versos más largos y casos de extracción defectuosa corroborados en el PDF. `parts` y `joiner` conservan la procedencia de cada tramo cuando el corpus los separa.
+
+### Tratado sobre el Ego y el Átomo
+
+- `tratado-sobre-el-ego-y-el-atomo`, 19 páginas, 170 bloques, 9 notas, 23 coincidencias altas, 0 medias, 0 recortes.
+- SHA-256 `817010c2ae8d14dbfe5fc291b42d6c4d138e68dd0a8d5e991d3ceb2806f917b8`.
+- La Palabra Treinta conserva sus dos objetivos y los fragmentos de la Fátiha en el orden de la edición. La quinta nota empieza en p. 10 y continúa en p. 11.
+
+### Tratado sobre los Enfermos
+
+- `tratado-sobre-los-enfermos`, 27 páginas, 316 bloques, 4 notas, 21 coincidencias altas, 0 medias, 3 recortes y 28 adornos.
+- SHA-256 `d98a7aab1140cde7294b503a7d019fe6a5bdb9f049c2a38307ac17baee623180`.
+- El segundo «SEXTO REMEDIO» y su nota se conservan junto con la Carta Diecisiete y el Segundo Destello. Los recortes incluyen la caligrafía de portada y el inicio de la carta repartido entre pp. 17–18.
+
+### Tratado sobre la Hermandad
+
+- `tratado-sobre-la-hermandad`, 18 páginas, 250 bloques, 1 nota, 30 coincidencias altas, 0 medias, 0 recortes.
+- SHA-256 `541cd2f48601fcbc4eb66f1abc211d4639787775cfb9cebcf2d6b87edff81487`.
+- La súplica de p. 11 reúne dos renglones del corpus. La glosa de las habladurías conserva cada fragmento del verso en el lugar donde se comenta.
+
+### La Guía del Servicio
+
+- `la-guia-del-servicio`, 107 páginas, 1424 bloques, 4 notas, 23 coincidencias altas, 43 medias, 5 recortes.
+- SHA-256 `71e0f02fc7d7966958a9721914bacea0617e6c7b7724c2f8ce094fc477fe8a96`.
+- Las coincidencias medias incluyen invocaciones repetidas y versos que figuran también en otros tratados. Las citas de pp. 14, 25, 27, 42 y 84 se conservan en recortes porque no se pudieron cotejar completas.
+
+### La Carta Diecinueve
+
+- `la-carta-diecinueve`, 95 páginas, 1174 bloques, 12 notas, 223 coincidencias altas, 7 medias, 14 recortes.
+- SHA-256 `905ffd840101affc34cdee628ad6f539df17e3b4b624afbaefe7a452855efa08`.
+- «La Carta Diecinueve» encabeza la p. 1. «Los Milagros de Muhammad (La Paz y las Bendiciones de Allah sean sobre él)» figura más abajo como encabezado. Se reunieron las imágenes que forman una sola cita, incluidas las de pp. 13 y 18. Los recortes incluyen una narración incompleta en la imagen de p. 12 y formas de nombres en p. 59.
+
+### Tratado Sobre la Naturaleza
+
+- `tratado-sobre-la-naturaleza`, 17 páginas, 166 bloques, 2 notas, 12 coincidencias altas, 2 medias, 1 recorte y 1 adorno.
+- SHA-256 `a69dc47fc152c634dcb96d5b2920e40f82ec09ec74bcc2248480f78d89d76e73`.
+- Se conserva en imagen el rótulo caligráfico de portada. Las dos mitades de la súplica final conservan su ubicación de origen en p. 17.
+
+### Palabras Pequeñas
+
+- `palabras-pequenas`, 33 páginas, 354 bloques, 2 notas, 37 coincidencias altas, 4 medias, 7 recortes y 11 adornos.
+- SHA-256 `7842ca1e1a6697c8cf34d40fbdaea0308927ed86f0819d81679b7c23d6a568a6`.
+- El PDF también trae la Palabra Nueve y material de la Palabra Veintiuno. Las oraciones compuestas de la portada y del cierre de la Palabra Siete se conservan en recortes.
+
+### Tratado sobre la Resurrección
+
+- `tratado-sobre-la-resurreccion`, 56 páginas, 527 bloques, 28 notas, 32 coincidencias altas, 6 medias, 9 recortes.
+- SHA-256 `221b00c72f67bfcbb20b8be740f11e5175bc14f0cdc6c10f30706c3d6bcac9c2`.
+- Se conservan como encabezados los aspectos con rótulo al comienzo del párrafo. Los recortes incluyen la caligrafía de portada y citas compuestas cuya versión en el corpus sigue otra división.
+
+### Reproducción y comprobación
+
+    uv run --python 3.14 --with pymupdf==1.28.2 python -I scripts/convert_pdf_books.py
+    uv run --python 3.14 --with pymupdf==1.28.2 python -I scripts/validate_pdf_books.py
+    uv run --python 3.14 --with pymupdf==1.28.2 python scripts/validate.py --pdf
+    node scripts-ui/gen-registry.mjs
+
+El validador compara bytes de cada JSON y PNG regenerado y verifica los renglones del PDF, los números de página, las notas, los objetos de imagen y las citas del corpus. En Expo Go para iOS 26.3 se comprobaron pp. 1 y 12 de la Carta Diecinueve, pp. 1 y 17 de Enfermos y pp. 1 y 41 de Resurrección. Se vieron las cabeceras, los números de página, el árabe compuesto con la fuente del lector y los recortes transparentes.
