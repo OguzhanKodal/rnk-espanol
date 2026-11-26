@@ -22,7 +22,7 @@ export const es = {
   prayers: "Horarios de oración",
   settings: "Ajustes",
   about: "Acerca de",
-  shelves: ["Corán", "Colección Risale-i Nur", "Tratados breves"],
+  shelves: ["Corán - Cevsen", "Libros principales", "Libros pequeños"],
   soon: "Próximamente",
   continue: "Continuar",
   page: "p.",
