@@ -17,10 +17,28 @@ import { WoodBackground, WoodGrain, woodPanel } from "../src/ui/wood-grain";
 import { es } from "../src/i18n/es";
 import { QURAN_ID } from "../src/content/quran";
 const coverArt = {
-  coran: require("../assets/covers/coran.jpg"),
-  coleccion: require("../assets/covers/coleccion.jpg"),
-  breves: require("../assets/covers/breves.jpg"),
+  green: require("../assets/covers/coran.jpg"),
+  ochre: require("../assets/covers/meal.jpg"),
+  red: require("../assets/covers/coleccion.jpg"),
+  small: require("../assets/covers/breves.jpg"),
 };
+type CoverLook = keyof typeof coverArt;
+const coverLook = (book: CatalogBook): CoverLook =>
+  book.shelf === "breves"
+    ? "small"
+    : book.id === "el-coran"
+    ? "green"
+    : book.id === "el-coran-significado"
+    ? "ochre"
+    : "red";
+const coverBase: Record<CoverLook, string> = {
+  green: "#0D3B29",
+  ochre: "#6E4F0E",
+  red: "#6E1220",
+  small: "#7A1C2E",
+};
+// Large covers are 88x132; small books are 10% smaller.
+const LARGE = { w: 88, h: 132 };
 const gold = "#EBCB86";
 const shelves = (["coran", "coleccion", "breves"] as const).map((shelf) => ({
   shelf,
@@ -51,17 +69,26 @@ const engraved = {
   textShadowRadius: 1.5,
 };
 const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
-  const small = book.shelf === "breves";
-  const w = small ? 80 : 88,
-    h = small ? 120 : 132;
+  const look = coverLook(book);
+  const small = look === "small";
+  const k = small ? 0.9 : 1;
+  const w = Math.round(LARGE.w * k),
+    h = Math.round(LARGE.h * k);
   const long = book.title.length;
+  const collection = book.shelf !== "coran";
+  // Shrink the title until its longest word fits on one line inside the frame
+  // (Playfair Bold averages ~0.55em per glyph); never break a word.
+  const padX = small ? 11 : 15;
+  const longestWord = Math.max(...book.title.split(/\s+/).map((t) => t.length));
+  const baseSize = long > 25 ? 10 : long > 14 ? 12 : 14;
+  const titleSize = Math.min(baseSize * k, (w - 2 * padX) / (longestWord * 0.55));
   return (
     <View
       style={{
         width: w,
         height: h,
-        borderRadius: small ? 2 : 4,
-        backgroundColor: book.shelf === "coran" ? "#0D3B29" : "#6E1220",
+        borderRadius: small ? 3 : 4,
+        backgroundColor: coverBase[look],
         shadowColor: "#160d06",
         shadowOffset: { width: 4, height: 6 },
         shadowOpacity: 0.28,
@@ -70,13 +97,13 @@ const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
       }}
     >
       <Image
-        source={coverArt[book.shelf]}
+        source={coverArt[look]}
         resizeMode="stretch"
         style={{
           position: "absolute",
           width: w,
           height: h,
-          borderRadius: small ? 2 : 4,
+          borderRadius: small ? 3 : 4,
         }}
       />
       <LinearGradient
@@ -88,109 +115,59 @@ const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
           left: 0,
           top: 0,
           bottom: 0,
-          width: small ? 10 : 16,
+          width: Math.round(16 * k),
         }}
       />
-      {small ? (
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: 7,
-            paddingTop: 8,
-            paddingBottom: 8,
-          }}
-        >
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: padX,
+        }}
+      >
+        {collection && (
           <Label
             style={{
-              fontFamily: "EBGaramond_400Regular",
-              fontSize: 5.5,
-              color: "#FBE9D8",
-              textAlign: "right",
+              fontFamily: "EBGaramond_600SemiBold",
+              fontSize: 5.5 * k,
+              color: gold,
+              textAlign: "center",
+              ...engraved,
             }}
           >
             {es.fromCollection}
           </Label>
-          <View style={{ flex: 1, justifyContent: "center" }}>
-            <Label
-              numberOfLines={4}
-              adjustsFontSizeToFit
-              minimumFontScale={0.8}
-              style={{
-                fontFamily: long > 30 ? "EBGaramond_600SemiBold" : "UnifrakturMaguntia_400Regular",
-                fontSize: long > 30 ? 9.5 : long > 18 ? 14 : 17,
-                lineHeight: long > 30 ? 11 : long > 18 ? 16 : 19,
-                color: "#FFFFFF",
-                textShadowColor: "#3a0d08",
-                textShadowOffset: { width: 1, height: 1.5 },
-                textShadowRadius: 1,
-              }}
-            >
-              {book.title}
-            </Label>
-            <Label
-              style={{
-                marginTop: 4,
-                fontFamily: "EBGaramond_600SemiBold",
-                fontSize: 7,
-                color: "#FBE3CF",
-              }}
-            >
-              {es.author}
-            </Label>
-            <View style={{ height: 16 }} />
-          </View>
-        </View>
-      ) : (
-        <View
+        )}
+        <Label
+          numberOfLines={5}
           style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            paddingHorizontal: 12,
+            fontFamily: "PlayfairDisplay_700Bold",
+            fontSize: titleSize,
+            lineHeight: Math.round(titleSize * 1.2 * 10) / 10,
+            color: gold,
+            textAlign: "center",
+            marginVertical: 5 * k,
+            ...engraved,
           }}
         >
-          {book.shelf === "coleccion" && (
-            <Label
-              style={{
-                fontFamily: "EBGaramond_600SemiBold",
-                fontSize: 5.5,
-                color: gold,
-                textAlign: "center",
-                ...engraved,
-              }}
-            >
-              {es.fromCollection}
-            </Label>
-          )}
+          {book.title}
+        </Label>
+        {collection && (
           <Label
             style={{
-              fontFamily: "PlayfairDisplay_700Bold",
-              fontSize: long > 25 ? 10 : long > 14 ? 12 : 14,
-              lineHeight: long > 25 ? 12 : long > 14 ? 14 : 17,
+              fontFamily: "EBGaramond_700Bold",
+              fontSize: 6.5 * k,
+              lineHeight: 7.5 * k,
               color: gold,
               textAlign: "center",
-              marginVertical: 5,
               ...engraved,
             }}
           >
-            {book.title}
+            {"Bediüzzaman\nSaid Nursî"}
           </Label>
-          {book.shelf === "coleccion" && (
-            <Label
-              style={{
-                fontFamily: "EBGaramond_700Bold",
-                fontSize: 6.5,
-                lineHeight: 7.5,
-                color: gold,
-                textAlign: "center",
-                ...engraved,
-              }}
-            >
-              {"Bediüzzaman\nSaid Nursî"}
-            </Label>
-          )}
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 });

@@ -26,7 +26,6 @@ import { LibreBaskerville_400Regular } from "@expo-google-fonts/libre-baskervill
 import { LibreBaskerville_700Bold } from "@expo-google-fonts/libre-baskerville/700Bold";
 import { LibreBaskerville_400Regular_Italic } from "@expo-google-fonts/libre-baskerville/400Regular_Italic";
 import { LibreBaskerville_700Bold_Italic } from "@expo-google-fonts/libre-baskerville/700Bold_Italic";
-import { UnifrakturMaguntia_400Regular } from "@expo-google-fonts/unifrakturmaguntia/400Regular";
 import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display/700Bold";
 import { Store, usePalette, useStore } from "../src/ui/store";
 import { Label } from "../src/ui/common";
@@ -245,7 +244,6 @@ export default function Layout() {
     LibreBaskerville_700Bold,
     LibreBaskerville_400Regular_Italic,
     LibreBaskerville_700Bold_Italic,
-    UnifrakturMaguntia_400Regular,
     PlayfairDisplay_700Bold,
   });
   if (!loaded && !error) return <ActivityIndicator style={{ flex: 1 }} />;
