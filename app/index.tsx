@@ -20,6 +20,7 @@ const coverArt = {
   green: require("../assets/covers/coran.jpg"),
   ochre: require("../assets/covers/meal.jpg"),
   red: require("../assets/covers/coleccion.jpg"),
+  cevsen: require("../assets/covers/cevsen.jpg"),
   small: require("../assets/covers/breves.jpg"),
 };
 type CoverLook = keyof typeof coverArt;
@@ -30,12 +31,15 @@ const coverLook = (book: CatalogBook): CoverLook =>
     ? "green"
     : book.id === "el-coran-significado"
     ? "ochre"
+    : book.shelf === "coran"
+    ? "cevsen"
     : "red";
 const coverBase: Record<CoverLook, string> = {
   green: "#0D3B29",
   ochre: "#6E4F0E",
   red: "#6E1220",
-  small: "#7A1C2E",
+  cevsen: "#5C0A12",
+  small: "#7A2A3E",
 };
 // Large covers are 88x132; small books are 10% smaller.
 const LARGE = { w: 88, h: 132 };
@@ -78,7 +82,8 @@ const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
   const collection = book.shelf !== "coran";
   // Shrink the title until its longest word fits on one line inside the frame
   // (Playfair Bold averages ~0.55em per glyph); never break a word.
-  const padX = small ? 11 : 15;
+  // Cevşen titles sit inside the narrower şemse medallion.
+  const padX = small ? 11 : look === "cevsen" ? 24 : 15;
   const longestWord = Math.max(...book.title.split(/\s+/).map((t) => t.length));
   const baseSize = long > 25 ? 10 : long > 14 ? 12 : 14;
   const titleSize = Math.min(baseSize * k, (w - 2 * padX) / (longestWord * 0.55));
@@ -151,7 +156,7 @@ const Cover = memo(function Cover({ book }: { book: CatalogBook }) {
             ...engraved,
           }}
         >
-          {book.title}
+          {book.title.replace(/-/g, "-\u2060")}
         </Label>
         {collection && (
           <Label
